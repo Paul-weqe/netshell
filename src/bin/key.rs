@@ -2,7 +2,8 @@
 
 use std::mem::{self, size_of};
 
-use libc::{self, bind, c_void, iovec, msghdr, nlmsghdr, send, sockaddr_nl, AF_INET, AF_NETLINK, NETLINK_ROUTE, NLM_F_DUMP, NLM_F_REQUEST, RTM_GETROUTE, SOCK_RAW};
+use libc::{self, bind, c_char, c_void, iovec, msghdr, nlmsghdr, recvfrom, recvmsg, send, sockaddr, sockaddr_nl, AF_INET, AF_NETLINK, MSG_PEEK, MSG_TRUNC, NETLINK_ROUTE, NLM_F_DUMP, NLM_F_REQUEST, RTM_GETROUTE, SOCK_RAW};
+use std::convert::TryInto;
 
 type UChar = libc::c_uchar; 
 type UInt = libc::c_uint;
@@ -13,13 +14,51 @@ fn main() {
     if dump_route_request(sock) < 0 {
         panic!("Failed to perform request")
     }
-
+    get_route_dump_response(sock);
 }
 
 fn get_route_dump_response(sock: i32) {
-    let mut nladdr: sockaddr_nl;
-    let mut lov: iovec;
-    let mut msg: msghdr;
+    let mut nladdr: sockaddr_nl = unsafe { mem::zeroed() };
+    let mut iov: iovec = unsafe { mem::zeroed() };
+    let mut msg: msghdr = unsafe{ mem::zeroed() };
+
+    msg.msg_name = (&mut nladdr as *mut sockaddr_nl) as *mut c_void;
+    msg.msg_namelen = size_of::<sockaddr_nl>() as u32;
+    msg.msg_iovlen = 1;
+    msg.msg_iov = &mut iov;
+
+    let mut status = unsafe {
+        recvmsg(
+            sock,
+            &mut msg, 
+            MSG_PEEK | MSG_TRUNC
+        )
+    };
+
+    println!("{status}");
+    
+    // let buf = vec![char::default(); status as usize];
+
+    // let mut iov = iovec {
+    //     iov_base: buf.as_slice().as_ptr() as *mut c_void,
+    //     iov_len: status as usize
+    // };
+
+    // msg.msg_iov = &mut iov;
+
+    // status = unsafe {
+    //     recvmsg(
+    //         sock,
+    //         &mut msg, 
+    //         0  
+    //     )
+    // };
+
+    // let x = unsafe { *msg.msg_iov };
+    // let y = x.iov_base ;
+    // println!("{:?}", y);
+
+    // println!("{:?}", unsafe { *(*msg.msg_iov).iov_base } );
 }
 
 fn dump_route_request(sock: i32) -> isize {
