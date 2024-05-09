@@ -1,62 +1,104 @@
-use netlink_packet_core::{NetlinkHeader, NetlinkMessage, NetlinkPayload, NLM_F_DUMP, NLM_F_REQUEST};
-use netlink_packet_route::{route::{RouteFlags, RouteMessage}, RouteNetlinkMessage};
-use netlink_sys::{protocols::NETLINK_ROUTE, Socket, SocketAddr};
+use std::{io::{stdin, stdout, Write}};
+use clap::{CommandFactory, Error, FromArgMatches, Parser, Subcommand};
+
+// type NetResult<T> = result::Result<T, Error>;
+
+#[derive(Parser)]
+struct OptCli {
+    #[command(subcommand)]
+    command: Option<OptCommand>
+}
+
+#[derive(Parser)]
+struct ConfCli {
+    #[command(subcommand)]
+    command: Option<ConfCommand>
+ }
+
+
+#[derive(Subcommand)]
+enum OptCommand {
+    Ping {
+        host: String
+    }
+}
+
+#[derive(Subcommand)]
+enum ConfCommand {
+}
+
+fn netcli_parse<P>(input: &[String]) -> Result<P, Error>  where P: Parser  {
+    let mut matches = match <P as CommandFactory>::command().try_get_matches_from_mut(input.clone()){
+        Ok(m) => {
+            m
+        }
+        Err(err) => return Err(err)
+    };
+    let res = match <P as FromArgMatches>::from_arg_matches_mut(&mut matches) {
+        Ok(res) => res,
+        Err(err) => return Err(err)
+    };
+    Ok(res)
+}
 
 
 fn main() {
+    let mode = CliMode::default();
 
-    let mut socket = Socket::new(NETLINK_ROUTE).unwrap();
-    let _port_number = socket.bind_auto().unwrap().port_number();
-    socket.connect(&SocketAddr::new(0, 0)).unwrap();
-
-    let mut nl_hdr = NetlinkHeader::default();
-    nl_hdr.flags = NLM_F_REQUEST | NLM_F_DUMP;
-
-    let mut pkt = NetlinkMessage::new(
-        nl_hdr,
-        NetlinkPayload::from(RouteNetlinkMessage::GetRoute(
-            RouteMessage::default()
-        ))
-    );
-
-    pkt.finalize();
-    let mut buf = vec![0; pkt.header.length as usize];
-    pkt.serialize(&mut buf[..]);
-
-    socket.send(&buf[..], 0).unwrap();
-
-    let mut recv_buffer = [0; 4096];
-    let mut offset = 0;
-    
     'outer: loop {
-        let size = socket.recv(&mut &mut recv_buffer[..], 0).unwrap();
-        
-        loop {
-            let bytes = &recv_buffer[offset..];
-            let msg: NetlinkMessage<RouteNetlinkMessage> = 
-                NetlinkMessage::deserialize(bytes).unwrap();
+        match mode {
+            
+            CliMode::Opr => {
+                let input = get_input(">");
 
-            match msg.payload {
-                NetlinkPayload::Done(_) => break 'outer,
-                NetlinkPayload::InnerMessage(
-                    RouteNetlinkMessage::NewRoute(entry)
-                ) => {
-                    println!("{:#?}", entry);
-                    println!("-----------");
-                }
-                NetlinkPayload::Error(err) => {
-                    eprintln!("Received a netlink error message: {err:?}");
-                    return;
-                }
-                _ => {}
+                let cli = match netcli_parse::<OptCli>(&input){
+                    Ok(cli) => cli,
+                    Err(_) => {
+                        println!("invalid command: {:?}", input);
+                        continue 'outer
+                    }
+                };
+                
             }
+            CliMode::Conf =>  {
+                let mut input = get_input("#");
 
-            offset += msg.header.length as usize;
-            if offset == size || msg.header.length == 0 {
-                offset = 0;
-                break;
+                let cli = match netcli_parse::<ConfCli>(&input){
+                    Ok(cli) => cli,
+                    Err(_) => {
+                        
+                        println!("invalid command: {:?}", input.as_slice());
+                        continue 'outer
+                    }
+                };
             }
         }
     }
+}
 
+
+#[derive(Default)]
+/// this is the mode that the shell will be running in. 
+/// When running in Operation mode, the configs will be read only
+/// When running on Configuration mode, we will be able to edit the configuration
+enum CliMode {
+    // operation mode
+    #[default]
+    Opr,
+    
+    // configuration mode
+    Conf
+}
+
+
+fn get_input(bash: &str) -> Vec<String> {
+
+    let mut input: String = String::new();
+
+    print!("{bash} ");
+    stdout().flush().unwrap();
+    stdin().read_line(&mut input).expect("Unable to read command");
+    let mut args = vec![String::new()];
+    input.split(" ").into_iter().for_each(|a| args.push(a.trim().to_string()));
+    args
 }
