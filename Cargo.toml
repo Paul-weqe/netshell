@@ -7,5 +7,9 @@ edition = "2021"
 
 [dependencies]
 libc = "0.2.154"
+netlink-packet-core = "0.7.0"
+netlink-packet-route = "0.20.0"
+netlink-packet-utils = "0.5.2"
+netlink-sys = "0.8.6"
 # linux = "0.0.1"
 pnet = "0.34.0"
