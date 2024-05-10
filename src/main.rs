@@ -1,7 +1,5 @@
-use std::{io::{stdin, stdout, Write}};
+use std::io::{stdin, stdout, Write};
 use clap::{CommandFactory, Error, FromArgMatches, Parser, Subcommand};
-
-// type NetResult<T> = result::Result<T, Error>;
 
 #[derive(Parser)]
 struct OptCli {
@@ -24,8 +22,7 @@ enum OptCommand {
 }
 
 #[derive(Subcommand)]
-enum ConfCommand {
-}
+enum ConfCommand { }
 
 fn netcli_parse<P>(input: &[String]) -> Result<P, Error>  where P: Parser  {
     let mut matches = match <P as CommandFactory>::command().try_get_matches_from_mut(input.clone()){
@@ -39,6 +36,25 @@ fn netcli_parse<P>(input: &[String]) -> Result<P, Error>  where P: Parser  {
         Err(err) => return Err(err)
     };
     Ok(res)
+}
+
+mod ping {
+    use pnet::{packet::{icmp::{
+        self, destination_unreachable::IcmpCodes, echo_request::MutableEchoRequestPacket, IcmpCode, IcmpType, IcmpTypes, MutableIcmpPacket
+    }, Packet}, util::checksum};
+
+
+    fn send_request() {
+        let mut buff = [0u8; 8];
+        let mut pkt = MutableEchoRequestPacket::new(&mut buff).unwrap();
+        pkt.set_icmp_type(IcmpTypes::EchoRequest);
+        // pkt.set_icmp_code(IcmpCodes::);
+        pkt.set_identifier(0);
+        pkt.set_sequence_number(0);
+        pkt.set_checksum(checksum(pkt.packet(), 2));
+    }
+
+
 }
 
 
@@ -58,7 +74,7 @@ fn main() {
                         continue 'outer
                     }
                 };
-                
+
             }
             CliMode::Conf =>  {
                 let mut input = get_input("#");
@@ -78,17 +94,14 @@ fn main() {
 
 
 #[derive(Default)]
-/// this is the mode that the shell will be running in. 
-/// When running in Operation mode, the configs will be read only
-/// When running on Configuration mode, we will be able to edit the configuration
 enum CliMode {
-    // operation mode
+    // operation mode - only allows reading and viewing of certain configs
     #[default]
-    Opr,
-    
-    // configuration mode
+    Opr,    
+    // configuration mode - allows editing of configs
     Conf
 }
+
 
 
 fn get_input(bash: &str) -> Vec<String> {
