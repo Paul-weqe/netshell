@@ -1,6 +1,7 @@
 use std::io::{stdin, stdout, Write};
 use clap::{CommandFactory, Error, FromArgMatches, Parser, Subcommand};
 use commands::operation;
+use crossterm::{event::{read, Event, KeyCode, KeyEventKind}, terminal::{disable_raw_mode, enable_raw_mode}};
 
 mod base;
 
@@ -10,6 +11,7 @@ enum CliMode {
     // operation mode - only allows reading and viewing of certain configs
     #[default]
     Opr,    
+    
     // configuration mode - allows editing of configs
     Conf
 }
@@ -19,33 +21,16 @@ fn main() {
     let mode = CliMode::default();
 
     'outer: loop {
+        let event = read().unwrap();
+
         match mode {
             
             CliMode::Opr => {
                 let input = get_input(">");
-
-                let _ = match netcli_parse::<commands::operation::OptCli>(&input){
-                    Ok(cli) => {
-                        operation::execute(cli)
-                    },
-                    Err(_) => {
-                        println!("invalid command: {:?}", input);
-                        continue 'outer
-                    }
-                };
+                println!("{:#?}", input.unwrap());
 
             }
             CliMode::Conf =>  {
-                let input = get_input("#");
-
-                match netcli_parse::<commands::configuration::ConfCli>(&input){
-                    Ok(cli) => cli,
-                    Err(_) => {
-                        
-                        println!("invalid command: {:?}", input.as_slice());
-                        continue 'outer
-                    }
-                };
             }
         }
     }
@@ -125,19 +110,48 @@ fn netcli_parse<P>(input: &[String]) -> Result<P, Error>  where P: Parser  {
 }
 
 
-
-
-
-
-fn get_input(bash: &str) -> Vec<String> {
-
+fn get_input(bash: &str) -> std::io::Result<Input> {
+    
     let mut input: String = String::new();
+    enable_raw_mode()?;
 
-    print!("{bash} ");
-    stdout().flush().unwrap();
-    stdin().read_line(&mut input).expect("Unable to read command");
-    let mut args = vec![String::new()];
-    input.split(" ").into_iter().for_each(|a| args.push(a.trim().to_string()));
-    args
+    let event = read()?;
+    loop {
+        println!("{:#?}", event);
+        match event { 
+            Event::Key(e) => {
+                if e.code == KeyCode::Char('?') {
+                    let mut args = vec![String::new()];
+                    input.split(" ").into_iter().for_each(|a| args.push(a.trim().to_string()));
+                    disable_raw_mode()?;
+                    return Ok(Input::Query(args))
+                }
+                
+                if let KeyCode::Char(c) = e.code {
+                    input.push(c);
+                }
+
+                if e.code == KeyCode::Enter {
+                    let mut args = vec![String::new()];
+                    input.split(" ").into_iter().for_each(|a| args.push(a.trim().to_string()));
+                    disable_raw_mode()?;
+                    return Ok(Input::CompletedCommand(args))
+                }
+            
+
+            }
+            _ => {}
+        }
+    }
+
+    disable_raw_mode()?;
+
+
+}
+
+#[derive(Debug)]
+enum Input {
+    CompletedCommand(Vec<String>),
+    Query(Vec<String>)
 }
 
