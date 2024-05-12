@@ -1,0 +1,1146 @@
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet,
+        destination_prefix_length: 0,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 254,
+        protocol: Dhcp,
+        scope: Universe,
+        kind: Unicast,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            254,
+        ),
+        Priority(
+            600,
+        ),
+        PrefSource(
+            Inet(
+                192.168.100.16,
+            ),
+        ),
+        Gateway(
+            Inet(
+                192.168.100.1,
+            ),
+        ),
+        Oif(
+            2,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet,
+        destination_prefix_length: 16,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 254,
+        protocol: Boot,
+        scope: Link,
+        kind: Unicast,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            254,
+        ),
+        Destination(
+            Inet(
+                169.254.0.0,
+            ),
+        ),
+        Priority(
+            1000,
+        ),
+        Oif(
+            2,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet,
+        destination_prefix_length: 16,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 254,
+        protocol: Kernel,
+        scope: Link,
+        kind: Unicast,
+        flags: RouteFlags(
+            Linkdown,
+        ),
+    },
+    attributes: [
+        Table(
+            254,
+        ),
+        Destination(
+            Inet(
+                172.17.0.0,
+            ),
+        ),
+        PrefSource(
+            Inet(
+                172.17.0.1,
+            ),
+        ),
+        Oif(
+            5,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet,
+        destination_prefix_length: 16,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 254,
+        protocol: Kernel,
+        scope: Link,
+        kind: Unicast,
+        flags: RouteFlags(
+            Linkdown,
+        ),
+    },
+    attributes: [
+        Table(
+            254,
+        ),
+        Destination(
+            Inet(
+                172.20.0.0,
+            ),
+        ),
+        PrefSource(
+            Inet(
+                172.20.0.1,
+            ),
+        ),
+        Oif(
+            4,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet,
+        destination_prefix_length: 16,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 254,
+        protocol: Kernel,
+        scope: Link,
+        kind: Unicast,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            254,
+        ),
+        Destination(
+            Inet(
+                172.23.0.0,
+            ),
+        ),
+        PrefSource(
+            Inet(
+                172.23.0.1,
+            ),
+        ),
+        Oif(
+            3,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet,
+        destination_prefix_length: 24,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 254,
+        protocol: Kernel,
+        scope: Link,
+        kind: Unicast,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            254,
+        ),
+        Destination(
+            Inet(
+                192.168.100.0,
+            ),
+        ),
+        Priority(
+            600,
+        ),
+        PrefSource(
+            Inet(
+                192.168.100.16,
+            ),
+        ),
+        Oif(
+            2,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet,
+        destination_prefix_length: 8,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Host,
+        kind: Local,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet(
+                127.0.0.0,
+            ),
+        ),
+        PrefSource(
+            Inet(
+                127.0.0.1,
+            ),
+        ),
+        Oif(
+            1,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet,
+        destination_prefix_length: 32,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Host,
+        kind: Local,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet(
+                127.0.0.1,
+            ),
+        ),
+        PrefSource(
+            Inet(
+                127.0.0.1,
+            ),
+        ),
+        Oif(
+            1,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet,
+        destination_prefix_length: 32,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Link,
+        kind: Broadcast,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet(
+                127.255.255.255,
+            ),
+        ),
+        PrefSource(
+            Inet(
+                127.0.0.1,
+            ),
+        ),
+        Oif(
+            1,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet,
+        destination_prefix_length: 32,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Host,
+        kind: Local,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet(
+                172.17.0.1,
+            ),
+        ),
+        PrefSource(
+            Inet(
+                172.17.0.1,
+            ),
+        ),
+        Oif(
+            5,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet,
+        destination_prefix_length: 32,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Link,
+        kind: Broadcast,
+        flags: RouteFlags(
+            Linkdown,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet(
+                172.17.255.255,
+            ),
+        ),
+        PrefSource(
+            Inet(
+                172.17.0.1,
+            ),
+        ),
+        Oif(
+            5,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet,
+        destination_prefix_length: 32,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Host,
+        kind: Local,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet(
+                172.20.0.1,
+            ),
+        ),
+        PrefSource(
+            Inet(
+                172.20.0.1,
+            ),
+        ),
+        Oif(
+            4,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet,
+        destination_prefix_length: 32,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Link,
+        kind: Broadcast,
+        flags: RouteFlags(
+            Linkdown,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet(
+                172.20.255.255,
+            ),
+        ),
+        PrefSource(
+            Inet(
+                172.20.0.1,
+            ),
+        ),
+        Oif(
+            4,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet,
+        destination_prefix_length: 32,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Host,
+        kind: Local,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet(
+                172.23.0.1,
+            ),
+        ),
+        PrefSource(
+            Inet(
+                172.23.0.1,
+            ),
+        ),
+        Oif(
+            3,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet,
+        destination_prefix_length: 32,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Link,
+        kind: Broadcast,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet(
+                172.23.255.255,
+            ),
+        ),
+        PrefSource(
+            Inet(
+                172.23.0.1,
+            ),
+        ),
+        Oif(
+            3,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet,
+        destination_prefix_length: 32,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Host,
+        kind: Local,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet(
+                192.168.100.16,
+            ),
+        ),
+        PrefSource(
+            Inet(
+                192.168.100.16,
+            ),
+        ),
+        Oif(
+            2,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet,
+        destination_prefix_length: 32,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Link,
+        kind: Broadcast,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet(
+                192.168.100.255,
+            ),
+        ),
+        PrefSource(
+            Inet(
+                192.168.100.16,
+            ),
+        ),
+        Oif(
+            2,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet6,
+        destination_prefix_length: 128,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 254,
+        protocol: Kernel,
+        scope: Universe,
+        kind: Unicast,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            254,
+        ),
+        Destination(
+            Inet6(
+                ::1,
+            ),
+        ),
+        Priority(
+            256,
+        ),
+        Oif(
+            1,
+        ),
+        CacheInfo(
+            RouteCacheInfo {
+                clntref: 0,
+                last_use: 0,
+                expires: 0,
+                error: 0,
+                used: 0,
+                id: 0,
+                ts: 0,
+                ts_age: 0,
+            },
+        ),
+        Preference(
+            Medium,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet6,
+        destination_prefix_length: 64,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 254,
+        protocol: Kernel,
+        scope: Universe,
+        kind: Unicast,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            254,
+        ),
+        Destination(
+            Inet6(
+                fe80::,
+            ),
+        ),
+        Priority(
+            256,
+        ),
+        Oif(
+            7,
+        ),
+        CacheInfo(
+            RouteCacheInfo {
+                clntref: 0,
+                last_use: 0,
+                expires: 0,
+                error: 0,
+                used: 0,
+                id: 0,
+                ts: 0,
+                ts_age: 0,
+            },
+        ),
+        Preference(
+            Medium,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet6,
+        destination_prefix_length: 64,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 254,
+        protocol: Kernel,
+        scope: Universe,
+        kind: Unicast,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            254,
+        ),
+        Destination(
+            Inet6(
+                fe80::,
+            ),
+        ),
+        Priority(
+            256,
+        ),
+        Oif(
+            3,
+        ),
+        CacheInfo(
+            RouteCacheInfo {
+                clntref: 0,
+                last_use: 0,
+                expires: 0,
+                error: 0,
+                used: 0,
+                id: 0,
+                ts: 0,
+                ts_age: 0,
+            },
+        ),
+        Preference(
+            Medium,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet6,
+        destination_prefix_length: 64,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 254,
+        protocol: Kernel,
+        scope: Universe,
+        kind: Unicast,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            254,
+        ),
+        Destination(
+            Inet6(
+                fe80::,
+            ),
+        ),
+        Priority(
+            1024,
+        ),
+        Oif(
+            2,
+        ),
+        CacheInfo(
+            RouteCacheInfo {
+                clntref: 0,
+                last_use: 0,
+                expires: 0,
+                error: 0,
+                used: 0,
+                id: 0,
+                ts: 0,
+                ts_age: 0,
+            },
+        ),
+        Preference(
+            Medium,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet6,
+        destination_prefix_length: 0,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 254,
+        protocol: Ra,
+        scope: Universe,
+        kind: Unicast,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            254,
+        ),
+        Priority(
+            20600,
+        ),
+        Gateway(
+            Inet6(
+                fe80::1,
+            ),
+        ),
+        Oif(
+            2,
+        ),
+        CacheInfo(
+            RouteCacheInfo {
+                clntref: 0,
+                last_use: 0,
+                expires: 0,
+                error: 0,
+                used: 0,
+                id: 0,
+                ts: 0,
+                ts_age: 0,
+            },
+        ),
+        Preference(
+            Medium,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet6,
+        destination_prefix_length: 128,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Universe,
+        kind: Local,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet6(
+                ::1,
+            ),
+        ),
+        Priority(
+            0,
+        ),
+        Oif(
+            1,
+        ),
+        CacheInfo(
+            RouteCacheInfo {
+                clntref: 0,
+                last_use: 0,
+                expires: 0,
+                error: 0,
+                used: 0,
+                id: 0,
+                ts: 0,
+                ts_age: 0,
+            },
+        ),
+        Preference(
+            Medium,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet6,
+        destination_prefix_length: 128,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Universe,
+        kind: Local,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet6(
+                fe80::42:93ff:fec5:8a16,
+            ),
+        ),
+        Priority(
+            0,
+        ),
+        Oif(
+            3,
+        ),
+        CacheInfo(
+            RouteCacheInfo {
+                clntref: 0,
+                last_use: 0,
+                expires: 0,
+                error: 0,
+                used: 0,
+                id: 0,
+                ts: 0,
+                ts_age: 0,
+            },
+        ),
+        Preference(
+            Medium,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet6,
+        destination_prefix_length: 128,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Universe,
+        kind: Local,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet6(
+                fe80::34cf:e7ff:fe72:15e4,
+            ),
+        ),
+        Priority(
+            0,
+        ),
+        Oif(
+            7,
+        ),
+        CacheInfo(
+            RouteCacheInfo {
+                clntref: 0,
+                last_use: 0,
+                expires: 0,
+                error: 0,
+                used: 0,
+                id: 0,
+                ts: 0,
+                ts_age: 0,
+            },
+        ),
+        Preference(
+            Medium,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet6,
+        destination_prefix_length: 128,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Universe,
+        kind: Local,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet6(
+                fe80::84db:775d:62c6:80a8,
+            ),
+        ),
+        Priority(
+            0,
+        ),
+        Oif(
+            2,
+        ),
+        CacheInfo(
+            RouteCacheInfo {
+                clntref: 0,
+                last_use: 0,
+                expires: 0,
+                error: 0,
+                used: 0,
+                id: 0,
+                ts: 0,
+                ts_age: 0,
+            },
+        ),
+        Preference(
+            Medium,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet6,
+        destination_prefix_length: 8,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Universe,
+        kind: Multicast,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet6(
+                ff00::,
+            ),
+        ),
+        Priority(
+            256,
+        ),
+        Oif(
+            7,
+        ),
+        CacheInfo(
+            RouteCacheInfo {
+                clntref: 0,
+                last_use: 0,
+                expires: 0,
+                error: 0,
+                used: 0,
+                id: 0,
+                ts: 0,
+                ts_age: 0,
+            },
+        ),
+        Preference(
+            Medium,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet6,
+        destination_prefix_length: 8,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Universe,
+        kind: Multicast,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet6(
+                ff00::,
+            ),
+        ),
+        Priority(
+            256,
+        ),
+        Oif(
+            3,
+        ),
+        CacheInfo(
+            RouteCacheInfo {
+                clntref: 0,
+                last_use: 0,
+                expires: 0,
+                error: 0,
+                used: 0,
+                id: 0,
+                ts: 0,
+                ts_age: 0,
+            },
+        ),
+        Preference(
+            Medium,
+        ),
+    ],
+}
+-----------
+RouteMessage {
+    header: RouteHeader {
+        address_family: Inet6,
+        destination_prefix_length: 8,
+        source_prefix_length: 0,
+        tos: 0,
+        table: 255,
+        protocol: Kernel,
+        scope: Universe,
+        kind: Multicast,
+        flags: RouteFlags(
+            0x0,
+        ),
+    },
+    attributes: [
+        Table(
+            255,
+        ),
+        Destination(
+            Inet6(
+                ff00::,
+            ),
+        ),
+        Priority(
+            256,
+        ),
+        Oif(
+            2,
+        ),
+        CacheInfo(
+            RouteCacheInfo {
+                clntref: 0,
+                last_use: 0,
+                expires: 0,
+                error: 0,
+                used: 0,
+                id: 0,
+                ts: 0,
+                ts_age: 0,
+            },
+        ),
+        Preference(
+            Medium,
+        ),
+    ],
+}
+-----------

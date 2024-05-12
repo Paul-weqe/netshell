@@ -1,10 +1,10 @@
 use netlink_packet_core::{NetlinkHeader, NetlinkMessage, NetlinkPayload, NLM_F_DUMP, NLM_F_REQUEST};
-use netlink_packet_route::{route::RouteMessage, RouteNetlinkMessage};
+use netlink_packet_route::{route::{RouteHeader, RouteMessage}, RouteNetlinkMessage};
 use netlink_sys::{protocols::NETLINK_ROUTE, Socket, SocketAddr};
 
 
 /// to be used at a later time
-fn _get_route_table() {
+pub fn get_route_table() {
 
     let mut socket = Socket::new(NETLINK_ROUTE).unwrap();
     let _port_number = socket.bind_auto().unwrap().port_number();
