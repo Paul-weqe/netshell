@@ -1,4 +1,3 @@
-
 mod commands;
 mod base;
 mod routing;
@@ -7,19 +6,24 @@ mod config;
 
 use std::io::{self, Write};
 use clap::{CommandFactory, Error, FromArgMatches, Parser};
+use commands::opr_mode::CommandOutput;
 use crossterm::{event::{self, Event, KeyCode, KeyEvent, KeyModifiers}, terminal::{disable_raw_mode, enable_raw_mode}};
 
 
 fn main() {
-    let mode = CliMode::default();
-    
+    let mut mode = CliMode::default();
+    let mut initial_cmd: Option<Vec<String>> = None;
+
     'outer: loop {
         let prompt: &str;
 
         match mode {
+
+            // when we are in operations mode. 
             CliMode::Opr => {
                 prompt = ">";
-                let input = get_input(&prompt, None);
+                let input = get_input(&prompt, initial_cmd.clone());
+                initial_cmd = None;
                 match input {
                     Ok(i) => {
                         match i {
@@ -28,30 +32,75 @@ fn main() {
                             Input::CompletedCommand(args) => {
                                 match netcli_parse::<commands::opr_mode::OprCli>(&args) {
                                     Ok(cli) => {
-                                        let _ = commands::opr_mode::execute(cli);
+
+                                        match commands::opr_mode::execute(cli) {
+                                            Ok(cmd_result) => {
+                                                match cmd_result {
+                                                    CommandOutput::LevelUp => {
+                                                        mode = CliMode::Conf;
+                                                        continue 'outer
+                                                    }
+                                                    _ => {}
+                                                }
+                                            }
+                                            Err(_) => {}
+                                        }
+                                        
                                     }
                                     Err(_) => continue 'outer
                                 }
                             },
 
                             // todo()
-                            Input::Query(args) => {
-
+                            Input::Query(incomplete_cmd) => {
+                                initial_cmd = Some(incomplete_cmd);
+                                continue 'outer
                             }
+
+                            // basically when one presses CTRL + C
                             Input::CanceledCommand(_) => {
+                                continue 'outer
+                            }
+
+                            Input::LevelDownInput => {
                                 break 'outer
+                            }
+
+                            Input::LevelUpInput => {
+
                             }
 
                         }
                     },
                     Err(_) => {
-
+                        
                     }
                 }
             }
 
-            CliMode::Conf =>  {
 
+            // if we are if configuration mode. 
+            CliMode::Conf =>  {
+                prompt = "#";
+                let input_result = get_input(&prompt, initial_cmd.clone());
+
+                match input_result {
+
+                    Ok(input) => {
+                        match input {
+                            Input::LevelUpInput => {
+
+                            }
+                            Input::LevelDownInput => {
+                                mode = CliMode::Opr;
+                                continue 'outer
+                            }
+                            _ => {}
+                        }
+                    }
+
+                    Err(_) => {}
+                }
             }
         }
     }
@@ -98,7 +147,7 @@ fn get_input(prompt: &str, initial_cmd: Option<Vec<String>>) -> io::Result<Input
 
     enable_raw_mode()?;
     let mut args = vec![String::new()];
-    print!("{prompt} ");
+    print!("{prompt} {}", line.trim());
     std::io::stdout().flush().unwrap();
 
     while let Event::Key(KeyEvent { code, modifiers, .. }) = event::read()? {
@@ -112,8 +161,18 @@ fn get_input(prompt: &str, initial_cmd: Option<Vec<String>>) -> io::Result<Input
                 return Ok(Input::CanceledCommand(args))
             }
 
+            KeyCode::Char('d') if control => {
+                print!("\r{prompt} {line}^D");
+                disable_raw_mode()?;
+                line.split(" ").into_iter().for_each(|a| args.push(String::from(a)));
+                return Ok(Input::LevelDownInput);
+            }
+
             KeyCode::Char('?') => {
-                break;
+                print!("\r{prompt} {line}?");
+                disable_raw_mode()?;
+                line.split(" ").into_iter().for_each(|a| args.push(String::from(a)));
+                return Ok(Input::Query(args))
             }
             KeyCode::Enter => {
                 break;
@@ -140,10 +199,11 @@ fn get_input(prompt: &str, initial_cmd: Option<Vec<String>>) -> io::Result<Input
     Ok(Input::CompletedCommand(args))
 }
 
-
 #[derive(Debug)]
 enum Input {
     CompletedCommand(Vec<String>),
     Query(Vec<String>),
-    CanceledCommand(Vec<String>)
+    CanceledCommand(Vec<String>),
+    LevelDownInput, 
+    LevelUpInput
 }

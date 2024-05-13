@@ -3,28 +3,38 @@ use clap::{Parser, Subcommand};
 use pnet::datalink::interfaces;
 use crate::{base::icmp, ifaces::draw_interface};
 
+pub(crate) enum CommandOutput {
+    Completed,
+    LevelDown, 
+    LevelUp
+}
 
 /// executes the command that has been run when on the operation mode 
-pub(crate) fn execute(cli: OprCli) -> Result<()> {
+pub(crate) fn execute(cli: OprCli) -> Result<CommandOutput> {
+
     match cli.command {
         Some(command) => {
             match command {
+                OprCommand::Configure => {
+                    return Ok(CommandOutput::LevelUp)
+                }
                 OprCommand::Ping { host } => {
                     icmp::ping(&host);
                 },
                 OprCommand::Show { item } => {
                     match item {
                         Some(i) => i.run(),
-
-                        // by defaut the command will not show only one item, it will show multiple items  
                         None => ShowItems::default().run()
                     }
                 }
             }
         }
-        None => { }
+        None => {
+
+        }
     }
-    Ok(())
+
+    Ok(CommandOutput::Completed)
 }
 
 #[derive(Parser)]
@@ -35,6 +45,7 @@ pub(crate) struct OprCli {
 
 #[derive(Subcommand)]
 enum OprCommand {
+    Configure,
     Ping {
         host: String
     },
@@ -49,14 +60,14 @@ enum OprCommand {
 enum ShowItems {
     #[default]
     Configuration,
-    Interface {
+    Interfaces {
         #[command(subcommand)]
-        detailed: Option<InterfaceBrief>
+        interface: Option<ShowInterface>
     }
 }
 
 #[derive(Debug, Clone, Subcommand)]
-enum InterfaceBrief { Brief }
+enum ShowInterface { Brief }
 
 
 impl ShowItems {
@@ -65,7 +76,7 @@ impl ShowItems {
             Self::Configuration => {
                 println!("\nAll Configuration");
             }
-            Self::Interface{ detailed } => {
+            Self::Interfaces{ interface: detailed } => {
                 draw_interface(interfaces(), detailed.is_some());
             }
         }
