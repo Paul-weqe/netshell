@@ -2,21 +2,16 @@ use std::io::Result;
 use clap::{Parser, Subcommand};
 use pnet::datalink::interfaces;
 use crate::{base::icmp, ifaces::draw_interface};
-
-pub(crate) enum CommandOutput {
-    Completed,
-    LevelDown, 
-    LevelUp
-}
+use super::ParsedOutput;
 
 /// executes the command that has been run when on the operation mode 
-pub(crate) fn execute(cli: OprCli) -> Result<CommandOutput> {
+pub(crate) fn execute(input: OprInput) -> Result<ParsedOutput> {
 
-    match cli.command {
+    match input.command {
         Some(command) => {
             match command {
                 OprCommand::Configure => {
-                    return Ok(CommandOutput::LevelUp)
+                    return Ok(ParsedOutput::LevelUp)
                 }
                 OprCommand::Ping { host } => {
                     icmp::ping(&host);
@@ -34,11 +29,11 @@ pub(crate) fn execute(cli: OprCli) -> Result<CommandOutput> {
         }
     }
 
-    Ok(CommandOutput::Completed)
+    Ok(ParsedOutput::Completed)
 }
 
 #[derive(Parser)]
-pub(crate) struct OprCli {
+pub(crate) struct OprInput {
     #[command(subcommand)]
     command: Option<OprCommand>
 }
