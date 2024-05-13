@@ -21,7 +21,7 @@ pub(crate) fn ping(host: &str) {
 
     let interfaces = datalink::interfaces();
     let interface = interfaces.get(1).unwrap();
-    let (mut tx, mut rx) = match datalink::channel(&interface, Default::default()) {
+    let (mut tx, mut rx) = match datalink::channel(interface, Default::default()) {
         Ok(Ethernet(tx, rx)) => (tx, rx),
         Ok(_) => panic!("Unable to create ethernet tunnel"),
         Err(e) => panic!("Unable to create channel: {e}")
@@ -85,7 +85,7 @@ pub(crate) fn ping(host: &str) {
                         IpNextHeaderProtocols::Icmp => {
                             match IcmpPacket::new(incoming_ip.payload()) {
                                 Some(p) => {
-                                    let echo = EchoReplyPacket::new(&p.packet()).unwrap();
+                                    let echo = EchoReplyPacket::new(p.packet()).unwrap();
                                     println!(
                                         "Successful: {} bytes from {:?}: icmp_seq={} ttl={}", 
                                         incoming_eth_pkt.packet().len(), 

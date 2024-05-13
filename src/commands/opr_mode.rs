@@ -6,26 +6,21 @@ use super::ParsedOutput;
 
 /// executes the command that has been run when on the operation mode 
 pub(crate) fn execute(input: OprInput) -> Result<ParsedOutput> {
-
-    match input.command {
-        Some(command) => {
-            match command {
-                OprCommand::Configure => {
-                    return Ok(ParsedOutput::LevelUp)
-                }
-                OprCommand::Ping { host } => {
-                    icmp::ping(&host);
-                },
-                OprCommand::Show { item } => {
-                    match item {
-                        Some(i) => i.run(),
-                        None => ShowItems::default().run()
-                    }
+    
+    if let Some(command) = input.command {
+        match command {
+            OprCommand::Configure => {
+                return Ok(ParsedOutput::LevelUp)
+            }
+            OprCommand::Ping { host } => {
+                icmp::ping(&host);
+            },
+            OprCommand::Show { item } => {
+                match item {
+                    Some(i) => i.run(),
+                    None => ShowItems::default().run()
                 }
             }
-        }
-        None => {
-
         }
     }
 

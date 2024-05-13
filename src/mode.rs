@@ -13,7 +13,7 @@ pub(crate) struct ConfigMode {
 }
 
 pub(crate) struct EditConfigMode { 
-    prompt: String 
+    pub(crate) prompt: String 
 }
 
 pub(crate) trait Cli {
@@ -42,7 +42,7 @@ pub(crate) trait Cli {
                 KeyCode::Char('c') if control => {
                     print!("\r{prompt} {line}^C");
                     disable_raw_mode()?;
-                    line.split(" ").into_iter().for_each(|a| args.push(String::from(a)));
+                    line.split(' ').for_each(|a| args.push(String::from(a)));
                     return Ok(UserRequest::CanceledCommand(args))
                 }
 
@@ -52,14 +52,14 @@ pub(crate) trait Cli {
                 KeyCode::Char('d') if control => {
                     print!("\r{prompt} {line}^D");
                     disable_raw_mode()?;
-                    line.split(" ").into_iter().for_each(|a| args.push(String::from(a)));
+                    line.split(' ').for_each(|a| args.push(String::from(a)));
                     return Ok(UserRequest::LevelDownInput);
                 }
 
                 KeyCode::Char('?') => {
                     print!("\r{prompt} {line}?");
                     disable_raw_mode()?;
-                    line.split(" ").into_iter().for_each(|a| args.push(String::from(a)));
+                    line.split(' ').for_each(|a| args.push(String::from(a)));
                     return Ok(UserRequest::Query(args))
                 }
                 KeyCode::Enter => {
@@ -67,7 +67,7 @@ pub(crate) trait Cli {
                 }
                 KeyCode::Backspace => {
                     line.pop();
-                    print!("\r{prompt} {line}{}\r{prompt} {line}", " ".repeat(1));
+                    print!("\r{prompt} {line}{}\r{prompt} {line}", " ".to_string());
                     std::io::stdout().flush().unwrap();
                 }
                 KeyCode::Char(c) => {
@@ -83,7 +83,7 @@ pub(crate) trait Cli {
         }
 
         disable_raw_mode()?;
-        line.split(" ").into_iter().for_each(|a| args.push(String::from(a)));
+        line.split(' ').for_each(|a| args.push(String::from(a)));
         Ok(UserRequest::CompletedCommand(args))
     }
 
@@ -108,58 +108,52 @@ pub(crate) trait Cli {
 impl Cli for OperationMode {
 
     fn run(&self) -> CliOutput {
-        let input = self.get_input(&self.prompt, None);
-        match input {
-            Ok(user_request) => {
-                match user_request {
+        if let Ok(user_request) = self.get_input(&self.prompt, None) {
+            match user_request {
 
-                    UserRequest::CompletedCommand(args) => {
+                UserRequest::CompletedCommand(args) => {
 
-                        if let Ok(cli) = Self::netcli_parse::<OprInput>(&args) {
-                            match commands::opr_mode::execute(cli) {
-                                Ok(cmd_result) => {
-                                    match cmd_result {
-                                        ParsedOutput::LevelUp => {
-                                            return CliOutput {
-                                                nextmode: self.level_up()
-                                            }
-                                        }
-                                        _ => {}
+                    if let Ok(cli) = Self::netcli_parse::<OprInput>(&args) {
+                        if let Ok(cmd_result) = commands::opr_mode::execute(cli){
+                            match cmd_result {
+                                ParsedOutput::LevelUp => {
+                                    return CliOutput {
+                                        nextmode: self.level_up()
                                     }
                                 }
-                                Err(_) => {}
+                                _ => {}
                             }
                         }
-
-                    },
-
-                    // todo()
-                    UserRequest::Query(_) => {
-
                     }
 
-                    // basically when one presses CTRL + C
-                    UserRequest::CanceledCommand(_) => {
-                        
-                    }
+                },
 
-                    UserRequest::LevelDownInput => {
-                        return CliOutput {
-                            nextmode: self.level_down()
-                        }
-                    }
-
-                    UserRequest::LevelUpInput => {
-                        return CliOutput {
-                            nextmode: self.level_up()
-                        }
-                    }
+                // todo()
+                UserRequest::Query(_) => {
 
                 }
+
+                // basically when one presses CTRL + C
+                UserRequest::CanceledCommand(_) => {
+                    
+                }
+
+                UserRequest::LevelDownInput => {
+                    return CliOutput {
+                        nextmode: self.level_down()
+                    }
+                }
+
+                UserRequest::LevelUpInput => {
+                    return CliOutput {
+                        nextmode: self.level_up()
+                    }
+                }
+
             }
-            _ => {}
         }
-        return CliOutput { 
+
+        CliOutput { 
             nextmode: Mode::Operation(
                 OperationMode { prompt: String::from(">") }
             )
@@ -178,25 +172,21 @@ impl Cli for ConfigMode {
         };
         match request {
             UserRequest::CompletedCommand(args) => {
-                if let Ok(cli_input) = Self::netcli_parse::<ConfInput>(&args)
-                {
-                    match commands::conf_mode::execute(cli_input) {
-                        Ok(output) => {
-                            match output {
-                                ParsedOutput::LevelDown => {
-                                    return CliOutput {
-                                        nextmode: self.level_down()
-                                    }
-                                },
-                                ParsedOutput::LevelUp => {
-                                    return CliOutput {
-                                        nextmode: self.level_up()
-                                    }
+                if let Ok(cli_input) = Self::netcli_parse::<ConfInput>(&args) {
+                    if let Ok(output) = commands::conf_mode::execute(cli_input) {
+                        match output {
+                            ParsedOutput::LevelDown => {
+                                return CliOutput {
+                                    nextmode: self.level_down()
                                 }
-                                _=> {}
+                            },
+                            ParsedOutput::LevelUp => {
+                                return CliOutput {
+                                    nextmode: self.level_up()
+                                }
                             }
+                            _=> {}
                         }
-                        Err(_) => { }
                     }
                 }
             }
@@ -215,7 +205,7 @@ impl Cli for ConfigMode {
 
             _ =>{}
         }
-        return CliOutput {
+        CliOutput {
             nextmode: Mode::Configuration(
                 ConfigMode { prompt: String::from("#") }
             )
