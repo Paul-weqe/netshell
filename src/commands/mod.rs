@@ -1,9 +1,11 @@
-pub(crate) mod opr_mode;
-pub(crate) mod conf_mode;
+pub(crate) mod opr_commands;
+pub(crate) mod conf_commands;
+pub(crate) mod edit_conf_commands;
 
 
-pub(crate) enum ParsedOutput {
+pub(crate) enum ClappedOutput {
     Completed,
     LevelDown, 
-    LevelUp
+    LevelUp,
+    Logout
 }

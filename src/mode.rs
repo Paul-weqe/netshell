@@ -2,7 +2,7 @@ use clap::{CommandFactory, Error, FromArgMatches, Parser};
 use crossterm::{event::{self, Event, KeyCode, KeyEvent, KeyModifiers}, terminal::{disable_raw_mode, enable_raw_mode}};
 use std::{io::{self, Write}, process};
 
-use crate::commands::{self, ParsedOutput, conf_mode::ConfInput, opr_mode::OprInput};
+use crate::commands::{self, conf_commands::ConfInput, edit_conf_commands::EditConfInput, opr_commands::OprInput, ClappedOutput};
 
 pub(crate) struct OperationMode { 
     pub(crate) prompt: String 
@@ -114,11 +114,16 @@ impl Cli for OperationMode {
                 UserRequest::CompletedCommand(args) => {
 
                     if let Ok(cli) = Self::netcli_parse::<OprInput>(&args) {
-                        if let Ok(cmd_result) = commands::opr_mode::execute(cli){
+                        if let Ok(cmd_result) = commands::opr_commands::execute(cli){
                             match cmd_result {
-                                ParsedOutput::LevelUp => {
+                                ClappedOutput::LevelUp => {
                                     return CliOutput {
                                         nextmode: self.level_up()
+                                    }
+                                }
+                                ClappedOutput::Logout => {
+                                    return CliOutput {
+                                        nextmode: self.logout()
                                     }
                                 }
                                 _ => {}
@@ -168,21 +173,26 @@ impl Cli for ConfigMode {
         let input = self.get_input(&self.prompt, None);
         let request = match input {
             Ok(user_request) => user_request,
-            Err(_) => panic!("No input")
+            Err(_) => panic!("[config] No input")
         };
         match request {
             UserRequest::CompletedCommand(args) => {
                 if let Ok(cli_input) = Self::netcli_parse::<ConfInput>(&args) {
-                    if let Ok(output) = commands::conf_mode::execute(cli_input) {
+                    if let Ok(output) = commands::conf_commands::execute(cli_input) {
                         match output {
-                            ParsedOutput::LevelDown => {
+                            ClappedOutput::LevelDown => {
                                 return CliOutput {
                                     nextmode: self.level_down()
                                 }
                             },
-                            ParsedOutput::LevelUp => {
+                            ClappedOutput::LevelUp => {
                                 return CliOutput {
                                     nextmode: self.level_up()
+                                }
+                            }
+                            ClappedOutput::Logout => {
+                                return CliOutput {
+                                    nextmode: self.logout()
                                 }
                             }
                             _=> {}
@@ -214,19 +224,106 @@ impl Cli for ConfigMode {
 }
 
 
+impl Cli for EditConfigMode {
+    fn run(&self) -> CliOutput {
+        let input = self.get_input(&self.prompt, None);
+        let request = match input {
+            Ok(user_request) => user_request,
+            Err(_) => panic!("[edit-config] No input")
+        };
+        match request {
+            UserRequest::CompletedCommand(args) => {
+
+                if let Ok(cli_input) = Self::netcli_parse::<EditConfInput>(&args) {
+                    if let Ok(output) = commands::edit_conf_commands::execute(cli_input) {
+                        match output{
+                            ClappedOutput::LevelDown => {
+                                return CliOutput {
+                                    nextmode: self.level_down()
+                                }
+                            }
+                            ClappedOutput::LevelUp => {
+                                return CliOutput {
+                                    nextmode: self.level_up()
+                                }
+                            }
+                            ClappedOutput::Logout => {
+                                return CliOutput {
+                                    nextmode: self.logout()
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+
+            UserRequest::LevelDownInput => {
+                return CliOutput {
+                    nextmode: self.level_down()
+                }
+            }
+
+            UserRequest::LevelUpInput => {
+                return CliOutput {
+                    nextmode: self.level_up()
+                }
+            }
+
+            _ => {}
+
+        };
+        return CliOutput {
+            nextmode: Mode::EditConfiguration(
+                EditConfigMode { prompt: String::from("edit-config# ") }
+            ) 
+        }
+    }
+}
+
 pub(crate) struct CliOutput {
     pub(crate) nextmode: Mode
 }
 
+
+///
+///  `UserRequest` takes the input that the user has given (e.g show ip interface)
+/// and categorizes the input. Apart from when the user presses `ENTER`, there 
+/// are other user actions that are taken into consideration e.g `CRTL + C`, 
+/// `CTRL + D` etc... 
+/// 
 #[derive(Debug)]
 pub(crate) enum UserRequest {
+
+    /// when a user is sure that is the command they would 
+    /// like to run. Happens when a user presses 'ETER' or 'RETURN'
+    /// (whichever your keyboard uses)
     CompletedCommand(Vec<String>),
+
+    /// when a user is asking for a completion of 
+    /// the command or when they ask for the possibilities
+    /// usually when '?' is pressed when running a command
     Query(Vec<String>),
+
+    /// this happens when a user presses `CTRL + C``
     CanceledCommand(Vec<String>),
+
+    /// when the mode is changed from a higher mode
+    /// to a lower mode e.g from a edit configuration 
+    /// mode to configuration mode. Mostly happens when `CRTL + D`
     LevelDownInput, 
+
+    /// when someone is changing to a higher level mode
+    /// e.g from operation mode to configuration mode. 
     LevelUpInput
 }
 
+
+/// Anytime we are on the network device terminal, we will be 
+/// in one mode depending on what you are working on. 
+/// 
+/// 
+/// 
 pub(crate) enum Mode{
     Operation(OperationMode),
     Configuration(ConfigMode),
@@ -248,15 +345,15 @@ pub(crate) trait State {
     fn logout(&self) -> Mode {
         std::process::exit(1);
     }
+    
     fn level_up(&self) -> Mode;
     fn level_down(&self) -> Mode;
 }
 
-trait Cool {
-    fn cool<I>(&self) -> I where I: State;
-}
 
 impl State for OperationMode {
+
+
     fn level_up(&self) -> Mode {
         Mode::Configuration(
             ConfigMode{ prompt: String::from("#") }

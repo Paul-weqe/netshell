@@ -2,15 +2,15 @@ use std::io::Result;
 use clap::{Parser, Subcommand};
 use pnet::datalink::interfaces;
 use crate::{base::icmp, ifaces::draw_interface};
-use super::ParsedOutput;
+use super::ClappedOutput;
 
 /// executes the command that has been run when on the operation mode 
-pub(crate) fn execute(input: OprInput) -> Result<ParsedOutput> {
+pub(crate) fn execute(input: OprInput) -> Result<ClappedOutput> {
     
     if let Some(command) = input.command {
         match command {
             OprCommand::Configure => {
-                return Ok(ParsedOutput::LevelUp)
+                return Ok(ClappedOutput::LevelUp)
             }
             OprCommand::Ping { host } => {
                 icmp::ping(&host);
@@ -24,15 +24,20 @@ pub(crate) fn execute(input: OprInput) -> Result<ParsedOutput> {
         }
     }
 
-    Ok(ParsedOutput::Completed)
+    Ok(ClappedOutput::Completed)
 }
 
+// this is what will handle the input from the user end, into clap. 
+// should pass whatever input it gets to OprCommand
 #[derive(Parser)]
 pub(crate) struct OprInput {
     #[command(subcommand)]
     command: Option<OprCommand>
 }
 
+
+// OprCommand contains all the current commands that can be 
+// run by the user while on the terminal. 
 #[derive(Subcommand)]
 enum OprCommand {
     Configure,

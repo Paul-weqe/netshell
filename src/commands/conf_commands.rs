@@ -1,22 +1,22 @@
 
 use clap::{Parser, Subcommand};
 
-use super::ParsedOutput;
+use super::ClappedOutput;
 
 
-pub(crate) fn execute(input: ConfInput) -> std::io::Result<ParsedOutput> {
+pub(crate) fn execute(input: ConfInput) -> std::io::Result<ClappedOutput> {
 
     if let Some(command) = input.command {
         match command {
-            ConfCommand::Exit=> {
-                return Ok(ParsedOutput::LevelDown)
+            ConfCommand::Up=> {
+                return Ok(ClappedOutput::LevelDown)
             }
             ConfCommand::Edit => {
-                return Ok(ParsedOutput::LevelUp)
+                return Ok(ClappedOutput::LevelUp)
             }
         }
     }
-    Ok(ParsedOutput::Completed)
+    Ok(ClappedOutput::Completed)
 
 }
 
@@ -28,6 +28,6 @@ pub(crate) struct ConfInput {
 
 #[derive(Subcommand)]
 enum ConfCommand {
-    Exit,
+    Up,
     Edit
 }

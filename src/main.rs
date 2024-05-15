@@ -9,32 +9,38 @@ mod mode;
 use mode::{Cli, Mode};
 
 
-struct Storage {
+struct Context {
     mode: mode::Mode
 }
 
 fn main() {
 
-    let mut storage = Storage{mode: Mode::default()};
+    let mut storage = Context{mode: Mode::default()};
 
     loop {
         
         match storage.mode {
-            
+
             Mode::Operation(op) => {
                 let output = op.run();
-                storage = Storage {
+                storage = Context {
                     mode: output.nextmode
                 };
             },
 
             Mode::Configuration(conf) => {
                 let output = conf.run();
-                storage = Storage {
+                storage = Context {
                     mode: output.nextmode
                 }
             }
-            _ => {}
+
+            Mode::EditConfiguration(conf) => {
+                let output = conf.run();
+                storage = Context {
+                    mode: output.nextmode
+                }
+            }
 
         }
     }

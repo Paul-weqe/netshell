@@ -1,14 +1,14 @@
 use std::net::Ipv4Addr;
 use std::str::FromStr;
+use std::thread;
+use std::time::Duration;
 
 use pnet::datalink::{self, Channel::Ethernet};
-use pnet::packet::ethernet::{EtherTypes, EthernetPacket, MutableEthernetPacket};
-use pnet::packet::icmp::echo_reply::EchoReplyPacket;
-use pnet::packet::icmp::IcmpPacket;
 use pnet::packet::{
-    icmp::{echo_request::MutableEchoRequestPacket, IcmpTypes},
+    icmp::{echo_request::MutableEchoRequestPacket, IcmpTypes, IcmpPacket, echo_reply::EchoReplyPacket},
     ip::IpNextHeaderProtocols,
     ipv4::{checksum as ip_checksum, Ipv4Flags, Ipv4Packet, MutableIpv4Packet},
+    ethernet::{EtherTypes, EthernetPacket, MutableEthernetPacket},
     Packet
 };
 use pnet::util::{checksum as util_checksum, MacAddr};
@@ -28,6 +28,8 @@ pub(crate) fn ping(host: &str) {
     };
 
     'ping: for seq in 0..4 {
+        // will be replaced by tokio sleep when async is introduced. 
+        thread::sleep(Duration::from_secs(1));
 
         // icmp packet
         let mut icmp_buff = [0u8; 8];
