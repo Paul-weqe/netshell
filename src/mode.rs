@@ -1,8 +1,13 @@
 use clap::{CommandFactory, Error, FromArgMatches, Parser};
-use crossterm::{event::{self, Event, KeyCode, KeyEvent, KeyModifiers}, terminal::{disable_raw_mode, enable_raw_mode}};
+use crossterm::{
+    event::{self, Event, KeyCode, KeyEvent, KeyModifiers}, 
+    terminal::{disable_raw_mode, enable_raw_mode}
+};
 use std::{io::{self, Write}, process};
-
-use crate::commands::{self, conf_commands::ConfInput, edit_conf_commands::EditConfInput, opr_commands::OprInput, ClappedOutput};
+use crate::{base, 
+    commands::{opr_commands, conf_commands::{self, ConfInput}, edit_conf_commands::{self, EditConfInput}, opr_commands::OprInput, ClappedOutput}, 
+    Configuration
+};
 
 pub(crate) struct OperationMode { 
     pub(crate) prompt: String 
@@ -42,7 +47,7 @@ pub(crate) trait Cli {
                 KeyCode::Char('c') if control => {
                     print!("\r{prompt} {line}^C");
                     disable_raw_mode()?;
-                    line.split(' ').for_each(|a| args.push(String::from(a)));
+                    line.trim().split(' ').for_each(|a| args.push(String::from(a)));
                     return Ok(UserRequest::CanceledCommand(args))
                 }
 
@@ -52,14 +57,14 @@ pub(crate) trait Cli {
                 KeyCode::Char('d') if control => {
                     print!("\r{prompt} {line}^D");
                     disable_raw_mode()?;
-                    line.split(' ').for_each(|a| args.push(String::from(a)));
+                    line.trim().split(' ').for_each(|a| args.push(String::from(a)));
                     return Ok(UserRequest::LevelDownInput);
                 }
 
                 KeyCode::Char('?') => {
                     print!("\r{prompt} {line}?");
                     disable_raw_mode()?;
-                    line.split(' ').for_each(|a| args.push(String::from(a)));
+                    line.trim().split(' ').for_each(|a| args.push(String::from(a)));
                     return Ok(UserRequest::Query(args))
                 }
                 KeyCode::Enter => {
@@ -83,7 +88,7 @@ pub(crate) trait Cli {
         }
 
         disable_raw_mode()?;
-        line.split(' ').for_each(|a| args.push(String::from(a)));
+        line.trim().split(' ').for_each(|a| args.push(String::from(a)));
         Ok(UserRequest::CompletedCommand(args))
     }
 
@@ -102,19 +107,19 @@ pub(crate) trait Cli {
         Ok(res)
     }
 
-    fn run(&self) -> CliOutput;
+    fn run(&self, conf: &mut Configuration) -> CliOutput;
 }
 
 impl Cli for OperationMode {
 
-    fn run(&self) -> CliOutput {
+    fn run(&self, conf: &mut Configuration) -> CliOutput {
         if let Ok(user_request) = self.get_input(&self.prompt, None) {
             match user_request {
 
                 UserRequest::CompletedCommand(args) => {
 
                     if let Ok(cli) = Self::netcli_parse::<OprInput>(&args) {
-                        if let Ok(cmd_result) = commands::opr_commands::execute(cli){
+                        if let Ok(cmd_result) = opr_commands::execute(cli){
                             match cmd_result {
                                 ClappedOutput::LevelUp => {
                                     return CliOutput {
@@ -169,16 +174,17 @@ impl Cli for OperationMode {
 
 
 impl Cli for ConfigMode {
-    fn run(&self) -> CliOutput {
+    fn run(&self, config: &mut Configuration) -> CliOutput {
         let input = self.get_input(&self.prompt, None);
         let request = match input {
             Ok(user_request) => user_request,
             Err(_) => panic!("[config] No input")
         };
+
         match request {
             UserRequest::CompletedCommand(args) => {
                 if let Ok(cli_input) = Self::netcli_parse::<ConfInput>(&args) {
-                    if let Ok(output) = commands::conf_commands::execute(cli_input) {
+                    if let Ok(output) = conf_commands::execute(cli_input, config) {
                         match output {
                             ClappedOutput::LevelDown => {
                                 return CliOutput {
@@ -217,7 +223,7 @@ impl Cli for ConfigMode {
         }
         CliOutput {
             nextmode: Mode::Configuration(
-                ConfigMode { prompt: String::from("#") }
+                ConfigMode { prompt: format!("{}#", &config.hostname) }
             )
         }
     }
@@ -225,7 +231,7 @@ impl Cli for ConfigMode {
 
 
 impl Cli for EditConfigMode {
-    fn run(&self) -> CliOutput {
+    fn run(&self, config: &mut Configuration) -> CliOutput {
         let input = self.get_input(&self.prompt, None);
         let request = match input {
             Ok(user_request) => user_request,
@@ -235,7 +241,7 @@ impl Cli for EditConfigMode {
             UserRequest::CompletedCommand(args) => {
 
                 if let Ok(cli_input) = Self::netcli_parse::<EditConfInput>(&args) {
-                    if let Ok(output) = commands::edit_conf_commands::execute(cli_input) {
+                    if let Ok(output) = edit_conf_commands::execute(cli_input) {
                         match output{
                             ClappedOutput::LevelDown => {
                                 return CliOutput {
@@ -275,7 +281,7 @@ impl Cli for EditConfigMode {
         };
         return CliOutput {
             nextmode: Mode::EditConfiguration(
-                EditConfigMode { prompt: String::from("edit-config# ") }
+                EditConfigMode { prompt: format!("{}edit-config#", base::get_hostname()) }
             ) 
         }
     }
@@ -356,7 +362,7 @@ impl State for OperationMode {
 
     fn level_up(&self) -> Mode {
         Mode::Configuration(
-            ConfigMode{ prompt: String::from("#") }
+            ConfigMode{ prompt: format!("{}#", base::get_hostname()) }
         )
     }
 
@@ -369,7 +375,7 @@ impl State for OperationMode {
 impl State for ConfigMode {
     fn level_up(&self) -> Mode {
         Mode::EditConfiguration(
-            EditConfigMode { prompt: String::from("edit-config#") }
+            EditConfigMode { prompt: format!("{}--edit-config#", base::get_hostname()) }
         )
     }
 
@@ -385,13 +391,13 @@ impl State for ConfigMode {
 impl State for EditConfigMode {
     fn level_up(&self) -> Mode {
         Mode::EditConfiguration(
-            EditConfigMode { prompt: String::from("edit-config#") }
+            EditConfigMode { prompt: format!("{}edit-config#", base::get_hostname()) }
         )
     }
 
     fn level_down(&self) -> Mode {
         Mode::Configuration(
-            ConfigMode { prompt: String::from("#") }
+            ConfigMode { prompt: format!("{}#", base::get_hostname()) }
         )
     }
 }

@@ -4,6 +4,13 @@
 use pnet::{datalink::NetworkInterface, util::MacAddr};
 use serde::{Deserialize, Serialize};
 
+struct Config {
+    system: SystemConfig
+}
+
+struct SystemConfig {
+    hostname: String
+}
 
 #[derive(Deserialize, Serialize)]
 pub(crate) struct InterfaceConfig {
@@ -12,7 +19,6 @@ pub(crate) struct InterfaceConfig {
     index: u32,
     mac: String
 }
-
 
 impl From<NetworkInterface> for InterfaceConfig {
     fn from(iface: NetworkInterface) -> Self {
