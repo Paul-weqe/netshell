@@ -66,7 +66,7 @@ pub(crate) trait Cli {
                     print!("\r{prompt} {line}^D");
                     disable_raw_mode()?;
                     line.trim().split(' ').for_each(|a| args.push(String::from(a)));
-                    return Ok(UserRequest::LevelDownInput);
+                    return Ok(UserRequest::LevelUpInput);
                 }
 
                 KeyCode::Char('l') if control => {
@@ -141,6 +141,11 @@ impl Cli for OperationMode {
                                         nextmode: self.level_up()
                                     }
                                 }
+                                ClappedOutput::LevelDown => {
+                                    return CliOutput {
+                                        nextmode: self.level_down()
+                                    }
+                                }
                                 ClappedOutput::Logout => {
                                     return CliOutput {
                                         nextmode: self.logout()
@@ -163,9 +168,9 @@ impl Cli for OperationMode {
                     
                 }
 
-                UserRequest::LevelDownInput => {
+                UserRequest::LevelUpInput => {
                     return CliOutput {
-                        nextmode: self.level_down()
+                        nextmode: self.level_up()
                     }
                 }
 
@@ -224,9 +229,9 @@ impl Cli for ConfigMode {
                 }
             }
 
-            UserRequest::LevelDownInput => {
+            UserRequest::LevelUpInput => {
                 return CliOutput {
-                    nextmode: self.level_down()
+                    nextmode: self.level_up()
                 }
             }
 
@@ -279,9 +284,9 @@ impl Cli for EditConfigMode {
                 }
             }
 
-            UserRequest::LevelDownInput => {
+            UserRequest::LevelUpInput => {
                 return CliOutput {
-                    nextmode: self.level_down()
+                    nextmode: self.level_up()
                 }
             }
 
@@ -330,7 +335,7 @@ pub(crate) enum UserRequest {
     /// when the mode is changed from a higher mode
     /// to a lower mode e.g from a edit configuration 
     /// mode to configuration mode. Mostly happens when `CRTL + D`
-    LevelDownInput, 
+    LevelUpInput, 
 
     // Clears the whole screen to get new input. 
     // when `CRTL + L` is pressed
@@ -353,7 +358,7 @@ pub(crate) enum Mode{
 impl Default for Mode {
     fn default() -> Self {
         Self::Operation(
-            OperationMode{ prompt: String::from(">") }
+            OperationMode{ prompt: format!("{}>", base::gethostname()) }
         )
     }
 }
@@ -366,6 +371,11 @@ pub(crate) trait State {
         std::process::exit(1);
     }
     
+
+    // There are three modes: Operation Mode, Configuration Mode and Edit Configuration Mode
+    // Operation is the highest Mode followed by COnfiguration followed by Edit Configuration Mode. 
+    // The lower you go, the more specific you are as to what you are viewing and also the more power you have. 
+    // level_up() takes you to a higher Mode and level_down() takes you to a lower mode.
     fn level_up(&self) -> Mode;
     fn level_down(&self) -> Mode;
 }
@@ -375,27 +385,28 @@ impl State for OperationMode {
 
 
     fn level_up(&self) -> Mode {
-        Mode::Configuration(
-            ConfigMode{ prompt: format!("{}#", base::gethostname()) }
-        )
+        process::exit(1);
     }
 
     fn level_down(&self) -> Mode {
-        process::exit(1);
+
+        Mode::Configuration(
+            ConfigMode{ prompt: format!("{}#", base::gethostname()) }
+        )
     }
 
 }
 
 impl State for ConfigMode {
     fn level_up(&self) -> Mode {
-        Mode::EditConfiguration(
-            EditConfigMode { prompt: format!("{}--edit-config#", base::gethostname()) }
+        Mode::Operation(
+            OperationMode { prompt: format!("{}>", base::gethostname()) }
         )
     }
 
     fn level_down(&self) -> Mode{
-        Mode::Operation(
-            OperationMode { prompt: String::from(">") }
+        Mode::EditConfiguration(
+            EditConfigMode { prompt: format!("{}:edit-config#", base::gethostname()) }
         )
     }
 
@@ -404,14 +415,16 @@ impl State for ConfigMode {
 
 impl State for EditConfigMode {
     fn level_up(&self) -> Mode {
-        Mode::EditConfiguration(
-            EditConfigMode { prompt: format!("{}edit-config#", base::gethostname()) }
+
+        Mode::Configuration(
+            ConfigMode { prompt: format!("{}#", base::gethostname()) }
         )
     }
 
     fn level_down(&self) -> Mode {
-        Mode::Configuration(
-            ConfigMode { prompt: format!("{}#", base::gethostname()) }
+
+        Mode::EditConfiguration(
+            EditConfigMode { prompt: self.prompt.clone() }
         )
     }
 }

@@ -10,7 +10,7 @@ pub(crate) fn execute(input: OprInput) -> Result<ClappedOutput> {
     if let Some(command) = input.command {
         match command {
             OprCommand::Configure => {
-                return Ok(ClappedOutput::LevelUp)
+                return Ok(ClappedOutput::LevelDown)
             }
 
             OprCommand::Ping { host } => {
