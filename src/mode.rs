@@ -112,7 +112,7 @@ pub(crate) trait Cli {
 
 impl Cli for OperationMode {
 
-    fn run(&self, conf: &mut Configuration) -> CliOutput {
+    fn run(&self, _conf: &mut Configuration) -> CliOutput {
         if let Ok(user_request) = self.get_input(&self.prompt, None) {
             match user_request {
 
@@ -151,12 +151,6 @@ impl Cli for OperationMode {
                 UserRequest::LevelDownInput => {
                     return CliOutput {
                         nextmode: self.level_down()
-                    }
-                }
-
-                UserRequest::LevelUpInput => {
-                    return CliOutput {
-                        nextmode: self.level_up()
                     }
                 }
 
@@ -213,12 +207,6 @@ impl Cli for ConfigMode {
                 }
             }
 
-            UserRequest::LevelUpInput => {
-                return CliOutput {
-                    nextmode: self.level_up()
-                }
-            }
-
             _ =>{}
         }
         CliOutput {
@@ -231,7 +219,7 @@ impl Cli for ConfigMode {
 
 
 impl Cli for EditConfigMode {
-    fn run(&self, config: &mut Configuration) -> CliOutput {
+    fn run(&self, _config: &mut Configuration) -> CliOutput {
         let input = self.get_input(&self.prompt, None);
         let request = match input {
             Ok(user_request) => user_request,
@@ -267,12 +255,6 @@ impl Cli for EditConfigMode {
             UserRequest::LevelDownInput => {
                 return CliOutput {
                     nextmode: self.level_down()
-                }
-            }
-
-            UserRequest::LevelUpInput => {
-                return CliOutput {
-                    nextmode: self.level_up()
                 }
             }
 
@@ -317,11 +299,8 @@ pub(crate) enum UserRequest {
     /// when the mode is changed from a higher mode
     /// to a lower mode e.g from a edit configuration 
     /// mode to configuration mode. Mostly happens when `CRTL + D`
-    LevelDownInput, 
-
-    /// when someone is changing to a higher level mode
-    /// e.g from operation mode to configuration mode. 
-    LevelUpInput
+    LevelDownInput
+    
 }
 
 
