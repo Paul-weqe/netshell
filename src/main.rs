@@ -21,7 +21,7 @@ pub(crate) struct Configuration {
 
 impl Default for Configuration {
     fn default() -> Self {
-        Self { hostname: base::get_hostname() }
+        Self { hostname: base::gethostname() }
     }
 }
 
@@ -29,7 +29,7 @@ fn main() {
 
     let mut storage = Context{mode: Mode::default()};
     let mut config = Configuration::default();
-    
+
     loop {
         
         match storage.mode {

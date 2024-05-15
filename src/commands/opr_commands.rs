@@ -12,14 +12,20 @@ pub(crate) fn execute(input: OprInput) -> Result<ClappedOutput> {
             OprCommand::Configure => {
                 return Ok(ClappedOutput::LevelUp)
             }
+
             OprCommand::Ping { host } => {
                 icmp::ping(&host);
-            },
+            }
+
             OprCommand::Show { item } => {
                 match item {
                     Some(i) => i.run(),
                     None => ShowItems::default().run()
                 }
+            }
+
+            OprCommand::Clear => {
+                return Ok(ClappedOutput::ClearScreen)
             }
         }
     }
@@ -40,6 +46,7 @@ pub(crate) struct OprInput {
 // run by the user while on the terminal. 
 #[derive(Subcommand)]
 enum OprCommand {
+    Clear,
     Configure,
     Ping {
         host: String

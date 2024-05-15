@@ -21,10 +21,16 @@ pub(crate) fn execute(input: ConfInput, config: &mut Configuration) -> std::io::
                 return Ok(ClappedOutput::LevelUp)
             },
 
+
+            ConfCommand::Clear => {
+                return Ok(ClappedOutput::ClearScreen)
+            }
+
             // {username}# set [item]
             ConfCommand::Set { item } => {
                 return execute_set_command(item, config)
             }
+
         }
     }
     Ok(ClappedOutput::Completed)
@@ -42,11 +48,9 @@ fn execute_set_command(item: SetItem, config: &mut Configuration) -> std::io::Re
                 System::HostName { hostname } => {
                     if base::sethostname(&hostname) >= 0 {
                         config.hostname = hostname.clone();
-                        println!("\nHostname {hostname} set");
                         return Ok(ClappedOutput::Completed);
                     } 
                     else { 
-                        println!("\nUnable to set hostname {hostname}");
                         return Ok(ClappedOutput::Completed);
                     }
                 }
@@ -65,6 +69,7 @@ pub(crate) struct ConfInput {
 
 #[derive(Subcommand, Debug)]
 enum ConfCommand {
+    Clear,
     Up,
     Edit,
     Set {

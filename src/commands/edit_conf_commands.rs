@@ -12,6 +12,9 @@ pub(crate) fn execute(input: EditConfInput) -> std::io::Result<ClappedOutput> {
             EditConfCommand::Logout => {
                 return Ok(ClappedOutput::Logout)
             }
+            EditConfCommand::Clear => {
+                return Ok(ClappedOutput::ClearScreen)
+            }
         }
     }
     Ok(ClappedOutput::Completed)
@@ -27,5 +30,6 @@ pub(crate) struct EditConfInput {
 #[derive(Subcommand)]
 enum EditConfCommand {
     Up,
-    Logout
+    Logout,
+    Clear
 }

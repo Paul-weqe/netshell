@@ -1,8 +1,85 @@
 
 pub(crate) mod icmp;
-use std::{ffi::CString, mem::zeroed, str};
+use std::{ffi::CString, mem::zeroed, str as ex_str};
 
 use libc::{self, utsname};
+
+
+/// meant to hold the utsname structure as specified in posix
+/// <https://pubs.opengroup.org/onlinepubs/7908799/xsh/sysutsname.h.html> 
+pub struct NameStructure {
+    pub sysname: [u8; 65],
+    pub nodename: [u8; 65],
+    pub release: [u8; 65],
+    pub version: [u8; 65],
+    pub machine: [u8; 65],
+    pub domainname: [u8; 65] 
+}
+
+impl From<utsname> for NameStructure {
+    fn from(value: utsname) -> Self {
+        let mut sysname: [u8; 65] = [u8::default(); 65];
+        value.sysname.iter().enumerate().for_each(|(i, val)|sysname[i] = *val as u8);
+
+        let mut nodename: [u8; 65] = [u8::default(); 65];
+        value.nodename.iter().enumerate().for_each(|(i, val)| nodename[i] = *val as u8);
+
+        let mut release: [u8; 65] = [u8::default(); 65];
+        value.release.iter().enumerate().for_each(|(i, val)| release[i] = *val as u8);
+
+        let mut version: [u8; 65] = [u8::default(); 65];
+        value.version.iter().enumerate().for_each(|(i, val)| version[i] = *val as u8);
+
+        let mut machine: [u8; 65] = [u8::default(); 65];
+        value.machine.iter().enumerate().for_each(|(i, val)| machine[i] = *val as u8);
+
+        let mut domainname: [u8; 65] = [u8::default(); 65];
+        value.domainname.iter().enumerate().for_each(|(i, val)| domainname[i] = *val as u8);
+
+        Self {
+            sysname, 
+            nodename, 
+            release,
+            version, 
+            machine, 
+            domainname
+        }
+
+    }
+}
+
+impl NameStructure {
+
+    fn sysname(&self) -> String {
+        String::from(ex_str::from_utf8(&self.sysname).unwrap())
+    }
+
+    fn nodename(&self) -> String {
+        String::from(ex_str::from_utf8(&self.nodename).unwrap())
+    }
+
+    fn release(&self) -> String {
+        String::from(ex_str::from_utf8(&self.release).unwrap())
+    }
+
+    fn version(&self) -> String {
+        String::from(ex_str::from_utf8(&self.version).unwrap())
+    }
+
+    fn machine(&self) -> String {
+        String::from(ex_str::from_utf8(&self.machine).unwrap())
+    }
+
+    fn domainname(&self) -> String {
+        String::from(ex_str::from_utf8(&self.domainname).unwrap())
+    }
+}
+
+pub(crate) fn gethostname() -> String {
+    let mut result: utsname = unsafe { zeroed() };
+    unsafe { libc::uname(&mut result) }; 
+    NameStructure::from(result).nodename()
+}
 
 pub(crate) fn sethostname(hostname: &str) -> i32 {
     let size = hostname.len();
@@ -16,22 +93,3 @@ pub(crate) fn sethostname(hostname: &str) -> i32 {
     }
 }
 
-pub(crate) fn get_name_structure() -> utsname {
-    let mut result: utsname = unsafe { zeroed() };
-    unsafe { libc::uname(&mut result) };
-    let x = result.nodename;
-    result
-    // let mut buff: Vec<u8> = Vec::new();
-    // buf.nodename.iter().for_each(|s| buff.push(*s as u8));
-    // String::from( ext_str::from_utf8(&buff).unwrap() )
-}
-
-pub(crate) fn get_hostname() -> String {
-    char_array_to_string(get_name_structure().nodename)
-}
-
-fn char_array_to_string(x: [i8; 65]) -> String {
-    let mut buf: Vec<u8> = Vec::new();
-    x.iter().for_each(|x| buf.push(*x as u8));
-    String::from(str::from_utf8(&buf).unwrap())
-}

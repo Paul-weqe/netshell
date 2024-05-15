@@ -7,5 +7,7 @@ pub(crate) enum ClappedOutput {
     Completed,
     LevelDown, 
     LevelUp,
+    ClearScreen,
     Logout
 }
+

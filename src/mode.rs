@@ -1,13 +1,19 @@
 use clap::{CommandFactory, Error, FromArgMatches, Parser};
 use crossterm::{
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers}, 
-    terminal::{disable_raw_mode, enable_raw_mode}
+    terminal::{self, disable_raw_mode, enable_raw_mode}, 
+    ExecutableCommand
 };
-use std::{io::{self, Write}, process};
+use std::{io::{self, stdout, Write}, process};
 use crate::{base, 
     commands::{opr_commands, conf_commands::{self, ConfInput}, edit_conf_commands::{self, EditConfInput}, opr_commands::OprInput, ClappedOutput}, 
     Configuration
 };
+
+fn clear_screen() {
+    let _ = stdout().execute(terminal::Clear(terminal::ClearType::All));
+    let _ = stdout().execute(crossterm::cursor::MoveTo(0, 0));
+}
 
 pub(crate) struct OperationMode { 
     pub(crate) prompt: String 
@@ -44,6 +50,8 @@ pub(crate) trait Cli {
             let control = modifiers.contains(KeyModifiers::CONTROL);
             match code {
 
+
+                // when CTRL +C is pressed
                 KeyCode::Char('c') if control => {
                     print!("\r{prompt} {line}^C");
                     disable_raw_mode()?;
@@ -59,6 +67,12 @@ pub(crate) trait Cli {
                     disable_raw_mode()?;
                     line.trim().split(' ').for_each(|a| args.push(String::from(a)));
                     return Ok(UserRequest::LevelDownInput);
+                }
+
+                KeyCode::Char('l') if control => {
+                    disable_raw_mode()?;
+                    line.trim().split(' ').for_each(|a| args.push(String::from(a)));
+                    return Ok(UserRequest::ClearScreen)
                 }
 
                 KeyCode::Char('?') => {
@@ -110,6 +124,7 @@ pub(crate) trait Cli {
     fn run(&self, conf: &mut Configuration) -> CliOutput;
 }
 
+
 impl Cli for OperationMode {
 
     fn run(&self, _conf: &mut Configuration) -> CliOutput {
@@ -154,6 +169,11 @@ impl Cli for OperationMode {
                     }
                 }
 
+                UserRequest::ClearScreen => {
+                    let _ = stdout().execute(terminal::Clear(terminal::ClearType::All));
+                    let _ = stdout().execute(crossterm::cursor::MoveTo(0, 0));
+                }
+
             }
         }
 
@@ -195,6 +215,9 @@ impl Cli for ConfigMode {
                                     nextmode: self.logout()
                                 }
                             }
+                            ClappedOutput::ClearScreen => {
+                                clear_screen();
+                            }
                             _=> {}
                         }
                     }
@@ -205,6 +228,10 @@ impl Cli for ConfigMode {
                 return CliOutput {
                     nextmode: self.level_down()
                 }
+            }
+
+            UserRequest::ClearScreen => {
+                clear_screen();
             }
 
             _ =>{}
@@ -258,12 +285,16 @@ impl Cli for EditConfigMode {
                 }
             }
 
+            UserRequest::ClearScreen => {
+                clear_screen();
+            }
+
             _ => {}
 
         };
         return CliOutput {
             nextmode: Mode::EditConfiguration(
-                EditConfigMode { prompt: format!("{}edit-config#", base::get_hostname()) }
+                EditConfigMode { prompt: format!("{}edit-config#", base::gethostname()) }
             ) 
         }
     }
@@ -299,8 +330,12 @@ pub(crate) enum UserRequest {
     /// when the mode is changed from a higher mode
     /// to a lower mode e.g from a edit configuration 
     /// mode to configuration mode. Mostly happens when `CRTL + D`
-    LevelDownInput
-    
+    LevelDownInput, 
+
+    // Clears the whole screen to get new input. 
+    // when `CRTL + L` is pressed
+    ClearScreen
+
 }
 
 
@@ -341,7 +376,7 @@ impl State for OperationMode {
 
     fn level_up(&self) -> Mode {
         Mode::Configuration(
-            ConfigMode{ prompt: format!("{}#", base::get_hostname()) }
+            ConfigMode{ prompt: format!("{}#", base::gethostname()) }
         )
     }
 
@@ -354,7 +389,7 @@ impl State for OperationMode {
 impl State for ConfigMode {
     fn level_up(&self) -> Mode {
         Mode::EditConfiguration(
-            EditConfigMode { prompt: format!("{}--edit-config#", base::get_hostname()) }
+            EditConfigMode { prompt: format!("{}--edit-config#", base::gethostname()) }
         )
     }
 
@@ -370,13 +405,13 @@ impl State for ConfigMode {
 impl State for EditConfigMode {
     fn level_up(&self) -> Mode {
         Mode::EditConfiguration(
-            EditConfigMode { prompt: format!("{}edit-config#", base::get_hostname()) }
+            EditConfigMode { prompt: format!("{}edit-config#", base::gethostname()) }
         )
     }
 
     fn level_down(&self) -> Mode {
         Mode::Configuration(
-            ConfigMode { prompt: format!("{}#", base::get_hostname()) }
+            ConfigMode { prompt: format!("{}#", base::gethostname()) }
         )
     }
 }
