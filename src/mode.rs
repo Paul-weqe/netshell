@@ -6,7 +6,7 @@ use crossterm::{
 };
 use std::{io::{self, stdout, Write}, process};
 use crate::{base, 
-    commands::{opr_commands, conf_commands::{self, ConfInput}, edit_conf_commands::{self, EditConfInput}, opr_commands::OprInput, ClappedOutput}, 
+    commands::{opr_commands, conf_commands::{self, ConfInput}, opr_commands::OprInput, ClappedOutput}, 
     Configuration
 };
 
@@ -20,10 +20,6 @@ pub(crate) struct OperationMode {
 }
 
 pub(crate) struct ConfigMode { 
-    pub(crate) prompt: String 
-}
-
-pub(crate) struct EditConfigMode { 
     pub(crate) prompt: String 
 }
 
@@ -249,62 +245,6 @@ impl Cli for ConfigMode {
     }
 }
 
-
-impl Cli for EditConfigMode {
-    fn run(&self, _config: &mut Configuration) -> CliOutput {
-        let input = self.get_input(&self.prompt, None);
-        let request = match input {
-            Ok(user_request) => user_request,
-            Err(_) => panic!("[edit-config] No input")
-        };
-        match request {
-            UserRequest::CompletedCommand(args) => {
-
-                if let Ok(cli_input) = Self::netcli_parse::<EditConfInput>(&args) {
-                    if let Ok(output) = edit_conf_commands::execute(cli_input) {
-                        match output{
-                            ClappedOutput::LevelDown => {
-                                return CliOutput {
-                                    nextmode: self.level_down()
-                                }
-                            }
-                            ClappedOutput::LevelUp => {
-                                return CliOutput {
-                                    nextmode: self.level_up()
-                                }
-                            }
-                            ClappedOutput::Logout => {
-                                return CliOutput {
-                                    nextmode: self.logout()
-                                }
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-            }
-
-            UserRequest::LevelUpInput => {
-                return CliOutput {
-                    nextmode: self.level_up()
-                }
-            }
-
-            UserRequest::ClearScreen => {
-                clear_screen();
-            }
-
-            _ => {}
-
-        };
-        return CliOutput {
-            nextmode: Mode::EditConfiguration(
-                EditConfigMode { prompt: format!("{}edit-config#", base::gethostname()) }
-            ) 
-        }
-    }
-}
-
 pub(crate) struct CliOutput {
     pub(crate) nextmode: Mode
 }
@@ -351,8 +291,7 @@ pub(crate) enum UserRequest {
 /// 
 pub(crate) enum Mode{
     Operation(OperationMode),
-    Configuration(ConfigMode),
-    EditConfiguration(EditConfigMode)
+    Configuration(ConfigMode)
 }
 
 impl Default for Mode {
@@ -405,26 +344,9 @@ impl State for ConfigMode {
     }
 
     fn level_down(&self) -> Mode{
-        Mode::EditConfiguration(
-            EditConfigMode { prompt: format!("{}:edit-config#", base::gethostname()) }
-        )
-    }
-
-}
-
-
-impl State for EditConfigMode {
-    fn level_up(&self) -> Mode {
-
         Mode::Configuration(
             ConfigMode { prompt: format!("{}#", base::gethostname()) }
         )
     }
 
-    fn level_down(&self) -> Mode {
-
-        Mode::EditConfiguration(
-            EditConfigMode { prompt: self.prompt.clone() }
-        )
-    }
 }

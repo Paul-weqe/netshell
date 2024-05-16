@@ -6,8 +6,6 @@ mod ifaces;
 mod config;
 mod mode;
 
-use std::rc::Rc;
-
 use mode::{Cli, Mode};
 
 
@@ -42,13 +40,6 @@ fn main() {
             },
 
             Mode::Configuration(conf) => {
-                let output = conf.run(&mut config);
-                storage = Context {
-                    mode: output.nextmode
-                }
-            }
-
-            Mode::EditConfiguration(conf) => {
                 let output = conf.run(&mut config);
                 storage = Context {
                     mode: output.nextmode

@@ -1,6 +1,5 @@
 // module meant for getting the configurations of items inside the networking device
 // examples are: interfaces, routing protocols etc
-
 use pnet::{datalink::NetworkInterface, util::MacAddr};
 use serde::{Deserialize, Serialize};
 
