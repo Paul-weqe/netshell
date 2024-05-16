@@ -4,13 +4,13 @@ mod base;
 mod routing;
 mod ifaces;
 mod config;
-mod mode;
+mod cli;
 
-use mode::{Cli, Mode};
+use cli::{Cli, Mode};
 
 
 struct Context {
-    mode: mode::Mode
+    mode: cli::Mode
 }
 
 pub(crate) struct Configuration {

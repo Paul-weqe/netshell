@@ -6,7 +6,7 @@ use crossterm::{
 };
 use std::{io::{self, stdout, Write}, process};
 use crate::{base, 
-    commands::{opr_commands, conf_commands::{self, ConfInput}, opr_commands::OprInput, ClappedOutput}, 
+    commands::{operational_cmd, configuration_cmd::{self, ConfInput}, operational_cmd::OprInput, ClappedOutput}, 
     Configuration
 };
 
@@ -123,14 +123,14 @@ pub(crate) trait Cli {
 
 impl Cli for OperationMode {
 
-    fn run(&self, _conf: &mut Configuration) -> CliOutput {
+    fn run(&self, conf: &mut Configuration) -> CliOutput {
         if let Ok(user_request) = self.get_input(&self.prompt, None) {
             match user_request {
 
                 UserRequest::CompletedCommand(args) => {
 
                     if let Ok(cli) = Self::netcli_parse::<OprInput>(&args) {
-                        if let Ok(cmd_result) = opr_commands::execute(cli){
+                        if let Ok(cmd_result) = operational_cmd::execute(cli){
                             match cmd_result {
                                 ClappedOutput::LevelUp => {
                                     return CliOutput {
@@ -180,7 +180,7 @@ impl Cli for OperationMode {
 
         CliOutput { 
             nextmode: Mode::Operation(
-                OperationMode { prompt: String::from(">") }
+                OperationMode { prompt: format!("{}>", base::gethostname()) }
             )
         }
     }
@@ -199,7 +199,7 @@ impl Cli for ConfigMode {
         match request {
             UserRequest::CompletedCommand(args) => {
                 if let Ok(cli_input) = Self::netcli_parse::<ConfInput>(&args) {
-                    if let Ok(output) = conf_commands::execute(cli_input, config) {
+                    if let Ok(output) = configuration_cmd::execute(cli_input, config) {
                         match output {
                             ClappedOutput::LevelDown => {
                                 return CliOutput {

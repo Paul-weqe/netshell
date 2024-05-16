@@ -12,13 +12,13 @@ pub(crate) fn execute(input: ConfInput, config: &mut Configuration) -> std::io::
         match command {
 
             // {username}# up
-            ConfCommand::Up=> {
-                return Ok(ClappedOutput::LevelDown)
+            ConfCommand::Up | ConfCommand::Exit => {
+                return Ok(ClappedOutput::LevelUp)
             }
 
             // {username}# edit
             ConfCommand::Edit => {
-                return Ok(ClappedOutput::LevelUp)
+                return Ok(ClappedOutput::LevelDown)
             },
 
 
@@ -71,6 +71,7 @@ pub(crate) struct ConfInput {
 enum ConfCommand {
     Clear,
     Up,
+    Exit,
     Edit,
     Set {
         #[command(subcommand)]

@@ -9,7 +9,9 @@ pub(crate) fn execute(input: OprInput) -> Result<ClappedOutput> {
     
     if let Some(command) = input.command {
         match command {
-            OprCommand::Configure => {
+            
+            OprCommand::Configure | OprCommand::Edit => {
+                println!("\nEntering configuration mode");
                 return Ok(ClappedOutput::LevelDown)
             }
 
@@ -48,6 +50,7 @@ pub(crate) struct OprInput {
 enum OprCommand {
     Clear,
     Configure,
+    Edit,
     Ping {
         host: String
     },
