@@ -5,14 +5,24 @@ mod routing;
 mod ifaces;
 mod config;
 mod cli;
+mod modes;
+
+
+use std::io::Error;
 
 use cli::{Cli, Mode};
 
 
+pub const DEFAULT_HISTORY_LOCATION: &str = "/root/.netsh_history";
+
+#[derive(Default, Clone)]
 struct Context {
-    mode: cli::Mode
+    mode: cli::Mode, 
+    config: Configuration,
+    history: Vec<String>
 }
 
+#[derive(Clone)]
 pub(crate) struct Configuration {
     hostname: String
 }
@@ -23,27 +33,20 @@ impl Default for Configuration {
     }
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
 
-    let mut storage = Context{mode: Mode::default()};
-    let mut config = Configuration::default();
+    let mut context = Context::default();
 
     loop {
         
-        match storage.mode {
-
-            Mode::Operation(op) => {
-                let output = op.run(&mut config);
-                storage = Context {
-                    mode: output.nextmode
-                };
+        match context.clone().mode {
+            Mode::Operation(ref op) => {
+                op.run(&mut context);
             },
 
-            Mode::Configuration(conf) => {
-                let output = conf.run(&mut config);
-                storage = Context {
-                    mode: output.nextmode
-                }
+            Mode::Configuration(ref conf) => {
+                conf.run(&mut context);
             }
 
         }

@@ -1,9 +1,9 @@
 
 pub(crate) mod icmp;
+mod history;
 use std::{ffi::CString, mem::zeroed, str as ex_str};
 
 use libc::{self, utsname};
-
 
 /// meant to hold the utsname structure as specified in posix
 /// <https://pubs.opengroup.org/onlinepubs/7908799/xsh/sysutsname.h.html> 

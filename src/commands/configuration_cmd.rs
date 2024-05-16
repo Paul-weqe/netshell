@@ -1,12 +1,10 @@
-
 use clap::{Parser, Subcommand};
-
-use crate::{base, Configuration};
-
+use pnet::datalink::interfaces;
+use crate::{base, ifaces, Context};
 use super::ClappedOutput;
 
 
-pub(crate) fn execute(input: ConfInput, config: &mut Configuration) -> std::io::Result<ClappedOutput> {
+pub(crate) fn execute(input: ConfInput, context: &mut Context) -> std::io::Result<ClappedOutput> {
 
     if let Some(command) = input.command {
         match command {
@@ -28,7 +26,15 @@ pub(crate) fn execute(input: ConfInput, config: &mut Configuration) -> std::io::
 
             // {username}# set [item]
             ConfCommand::Set { item } => {
-                return execute_set_command(item, config)
+                return execute_set_command(item, context)
+            }
+
+            ConfCommand::Show { item } => {
+                match item {
+                    ShowItem::Interfaces => {
+                        ifaces::draw_interface(interfaces(), true);
+                    }
+                }
             }
 
         }
@@ -37,7 +43,7 @@ pub(crate) fn execute(input: ConfInput, config: &mut Configuration) -> std::io::
 
 }
 
-fn execute_set_command(item: SetItem, config: &mut Configuration) -> std::io::Result<ClappedOutput>{
+fn execute_set_command(item: SetItem, context: &mut Context) -> std::io::Result<ClappedOutput>{
     match item {
 
         // config-mode# set system [param]
@@ -47,7 +53,7 @@ fn execute_set_command(item: SetItem, config: &mut Configuration) -> std::io::Re
                 // config-mode# set system host-name [hostname]
                 System::HostName { hostname } => {
                     if base::sethostname(&hostname) >= 0 {
-                        config.hostname = hostname.clone();
+                        context.config.hostname = hostname.clone();
                         return Ok(ClappedOutput::Completed);
                     } 
                     else { 
@@ -61,7 +67,7 @@ fn execute_set_command(item: SetItem, config: &mut Configuration) -> std::io::Re
 }
 
 
-#[derive(Parser)]
+#[derive(Parser, Debug)]
 pub(crate) struct ConfInput {
     #[command(subcommand)]
     command: Option<ConfCommand>
@@ -73,6 +79,10 @@ enum ConfCommand {
     Up,
     Exit,
     Edit,
+    Show {
+        #[command(subcommand)]
+        item: ShowItem
+    }, 
     Set {
         #[command(subcommand)]
         item: SetItem
@@ -82,9 +92,7 @@ enum ConfCommand {
 
 #[derive(Subcommand, Debug)]
 enum SetItem {
-    // HostName {
-    //     hostname: String
-    // },
+    // set system [param]
     System {
         #[command(subcommand)]
         param: System
@@ -93,7 +101,16 @@ enum SetItem {
 
 #[derive(Subcommand, Debug)]
 enum System {
+
+    // set system host-name [host-name]
     HostName {
         hostname: String
     }
+}
+
+
+#[derive(Subcommand, Debug)]
+enum ShowItem {
+    // show interfaces
+    Interfaces 
 }

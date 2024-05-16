@@ -5,9 +5,7 @@ use crossterm::{
     ExecutableCommand
 };
 use std::{io::{self, stdout, Write}, process};
-use crate::{base, 
-    commands::{operational_cmd, configuration_cmd::{self, ConfInput}, operational_cmd::OprInput, ClappedOutput}, 
-    Configuration
+use crate::{base, commands::{configuration_cmd::{self, ConfInput}, operational_cmd::{self, OprInput}, ClappedOutput}, modes::{ConfigMode, OperationMode}, Context
 };
 
 fn clear_screen() {
@@ -15,13 +13,6 @@ fn clear_screen() {
     let _ = stdout().execute(crossterm::cursor::MoveTo(0, 0));
 }
 
-pub(crate) struct OperationMode { 
-    pub(crate) prompt: String 
-}
-
-pub(crate) struct ConfigMode { 
-    pub(crate) prompt: String 
-}
 
 pub(crate) trait Cli {
     /*
@@ -117,35 +108,33 @@ pub(crate) trait Cli {
         Ok(res)
     }
 
-    fn run(&self, conf: &mut Configuration) -> CliOutput;
+    fn run(&self, context: &mut Context) -> io::Result<()>;
 }
 
 
 impl Cli for OperationMode {
 
-    fn run(&self, conf: &mut Configuration) -> CliOutput {
+    fn run(&self, context: &mut Context) -> io::Result<()> {
         if let Ok(user_request) = self.get_input(&self.prompt, None) {
             match user_request {
 
                 UserRequest::CompletedCommand(args) => {
 
                     if let Ok(cli) = Self::netcli_parse::<OprInput>(&args) {
+
                         if let Ok(cmd_result) = operational_cmd::execute(cli){
                             match cmd_result {
                                 ClappedOutput::LevelUp => {
-                                    return CliOutput {
-                                        nextmode: self.level_up()
-                                    }
+                                    context.mode = self.level_up();
+                                    return Ok(())
                                 }
                                 ClappedOutput::LevelDown => {
-                                    return CliOutput {
-                                        nextmode: self.level_down()
-                                    }
+                                    context.mode = self.level_down();
+                                    return Ok(())
                                 }
                                 ClappedOutput::Logout => {
-                                    return CliOutput {
-                                        nextmode: self.logout()
-                                    }
+                                    context.mode = self.logout();
+                                    return Ok(())
                                 }
                                 _ => {}
                             }
@@ -165,9 +154,8 @@ impl Cli for OperationMode {
                 }
 
                 UserRequest::LevelUpInput => {
-                    return CliOutput {
-                        nextmode: self.level_up()
-                    }
+                    context.mode = self.level_up();
+                    return Ok(())
                 }
 
                 UserRequest::ClearScreen => {
@@ -177,19 +165,16 @@ impl Cli for OperationMode {
 
             }
         }
-
-        CliOutput { 
-            nextmode: Mode::Operation(
-                OperationMode { prompt: format!("{}>", base::gethostname()) }
-            )
-        }
+        context.mode = Mode::Operation( OperationMode::default() );
+        return Ok(())
     }
 
 }
 
 
 impl Cli for ConfigMode {
-    fn run(&self, config: &mut Configuration) -> CliOutput {
+    fn run(&self, context: &mut Context) -> io::Result<()> {
+
         let input = self.get_input(&self.prompt, None);
         let request = match input {
             Ok(user_request) => user_request,
@@ -199,22 +184,19 @@ impl Cli for ConfigMode {
         match request {
             UserRequest::CompletedCommand(args) => {
                 if let Ok(cli_input) = Self::netcli_parse::<ConfInput>(&args) {
-                    if let Ok(output) = configuration_cmd::execute(cli_input, config) {
+                    if let Ok(output) = configuration_cmd::execute(cli_input, context) {
                         match output {
                             ClappedOutput::LevelDown => {
-                                return CliOutput {
-                                    nextmode: self.level_down()
-                                }
+                                context.mode = self.level_down();
+                                return Ok(())
                             },
                             ClappedOutput::LevelUp => {
-                                return CliOutput {
-                                    nextmode: self.level_up()
-                                }
+                                context.mode = self.level_up();
+                                return Ok(())
                             }
                             ClappedOutput::Logout => {
-                                return CliOutput {
-                                    nextmode: self.logout()
-                                }
+                                context.mode = self.logout();
+                                return Ok(())
                             }
                             ClappedOutput::ClearScreen => {
                                 clear_screen();
@@ -222,13 +204,12 @@ impl Cli for ConfigMode {
                             _=> {}
                         }
                     }
-                }
+                } 
             }
 
             UserRequest::LevelUpInput => {
-                return CliOutput {
-                    nextmode: self.level_up()
-                }
+                context.mode = self.level_up();
+                return Ok(())
             }
 
             UserRequest::ClearScreen => {
@@ -237,25 +218,16 @@ impl Cli for ConfigMode {
 
             _ =>{}
         }
-        CliOutput {
-            nextmode: Mode::Configuration(
-                ConfigMode { prompt: format!("{}#", &config.hostname) }
-            )
-        }
+        context.mode = Mode::Configuration( ConfigMode::default() );
+        return Ok(())
     }
 }
 
-pub(crate) struct CliOutput {
-    pub(crate) nextmode: Mode
-}
 
-
-///
 ///  `UserRequest` takes the input that the user has given (e.g show ip interface)
 /// and categorizes the input. Apart from when the user presses `ENTER`, there 
 /// are other user actions that are taken into consideration e.g `CRTL + C`, 
 /// `CTRL + D` etc... 
-/// 
 #[derive(Debug)]
 pub(crate) enum UserRequest {
 
@@ -286,9 +258,7 @@ pub(crate) enum UserRequest {
 
 /// Anytime we are on the network device terminal, we will be 
 /// in one mode depending on what you are working on. 
-/// 
-/// 
-/// 
+#[derive(Clone)]
 pub(crate) enum Mode{
     Operation(OperationMode),
     Configuration(ConfigMode)
@@ -296,9 +266,7 @@ pub(crate) enum Mode{
 
 impl Default for Mode {
     fn default() -> Self {
-        Self::Operation(
-            OperationMode{ prompt: format!("{}>", base::gethostname()) }
-        )
+        Self::Operation(OperationMode::default())
     }
 }
 
@@ -309,7 +277,6 @@ pub(crate) trait State {
     fn logout(&self) -> Mode {
         std::process::exit(1);
     }
-    
 
     // There are three modes: Operation Mode, Configuration Mode and Edit Configuration Mode
     // Operation is the highest Mode followed by COnfiguration followed by Edit Configuration Mode. 
@@ -322,31 +289,23 @@ pub(crate) trait State {
 
 impl State for OperationMode {
 
-
     fn level_up(&self) -> Mode {
         process::exit(1);
     }
 
     fn level_down(&self) -> Mode {
-
-        Mode::Configuration(
-            ConfigMode{ prompt: format!("{}#", base::gethostname()) }
-        )
+        Mode::Configuration(ConfigMode::default())
     }
 
 }
 
 impl State for ConfigMode {
     fn level_up(&self) -> Mode {
-        Mode::Operation(
-            OperationMode { prompt: format!("{}>", base::gethostname()) }
-        )
+        Mode::Operation(OperationMode::default())
     }
 
-    fn level_down(&self) -> Mode{
-        Mode::Configuration(
-            ConfigMode { prompt: format!("{}#", base::gethostname()) }
-        )
+    fn level_down(&self) -> Mode {
+        Mode::Configuration(ConfigMode::default())
     }
 
 }
