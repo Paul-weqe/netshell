@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 use pnet::datalink::interfaces;
-use crate::{base, ifaces, Context};
+use crate::{core, ifaces, Context};
 use super::ClappedOutput;
 
 
@@ -57,7 +57,7 @@ fn execute_set_command(item: SetItem, context: &mut Context) -> std::io::Result<
 
                 // config-mode# set system host-name [hostname]
                 System::HostName { hostname } => {
-                    if base::sethostname(&hostname) >= 0 {
+                    if core::sethostname(&hostname) >= 0 {
                         context.config.hostname = hostname.clone();
                         return Ok(ClappedOutput::Completed);
                     } 

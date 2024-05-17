@@ -1,7 +1,7 @@
 use std::io::Result;
 use clap::{Parser, Subcommand};
 use pnet::datalink::interfaces;
-use crate::{base::icmp, ifaces::draw_interface, Context};
+use crate::{core::icmp, ifaces::draw_interface, Context};
 use super::ClappedOutput;
 
 /// executes the command that has been run when on the operation mode 

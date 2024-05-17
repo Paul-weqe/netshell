@@ -20,7 +20,7 @@ fn clear_screen() {
 }
 
 
-pub(crate) trait Cli {
+pub trait Cli {
     /*
     Gets input from the user. 
 
@@ -274,7 +274,7 @@ impl Cli for ConfigMode {
 /// are other user actions that are taken into consideration e.g `CRTL + C`, 
 /// `CTRL + D` etc... 
 #[derive(Debug)]
-pub(crate) enum UserRequest {
+pub enum UserRequest {
 
     /// when a user is sure that is the command they would 
     /// like to run. Happens when a user presses 'ETER' or 'RETURN'
@@ -304,7 +304,7 @@ pub(crate) enum UserRequest {
 /// Anytime we are on the network device terminal, we will be 
 /// in one mode depending on what you are working on. 
 #[derive(Clone)]
-pub(crate) enum Mode{
+pub enum Mode{
     Operation(OperationMode),
     Configuration(ConfigMode)
 }

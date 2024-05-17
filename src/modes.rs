@@ -1,24 +1,24 @@
-use crate::base;
+use crate::core;
 
 
 #[derive(Clone)]
-pub(crate) struct OperationMode { 
+pub struct OperationMode { 
     pub(crate) prompt: String 
 }
 
 impl Default for OperationMode {
     fn default() -> Self {
-        Self { prompt: format!("{}>", base::gethostname()) }
+        Self { prompt: format!("{}>", core::gethostname()) }
     }
 }
 
 #[derive(Clone)]
-pub(crate) struct ConfigMode { 
+pub struct ConfigMode { 
     pub(crate) prompt: String 
 }
 
 impl Default for ConfigMode {
     fn default() -> Self {
-        Self { prompt: format!("{}#", base::gethostname()) }
+        Self { prompt: format!("{}#", core::gethostname()) }
     }
 }
