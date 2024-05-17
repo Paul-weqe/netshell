@@ -1,7 +1,7 @@
 
 use std::{fs::{self, File}, io::Write, path::Path};
 use tabled::{builder::Builder, settings::{object::Rows, Alignment, Style}};
-use crate::DEFAULT_HISTORY_LOCATION;
+use crate::HISTORY_FILE;
 
 
 #[derive(Clone)]
@@ -21,7 +21,7 @@ impl History {
 
         let file = match location {
             Some(loc) => loc,
-            None => DEFAULT_HISTORY_LOCATION
+            None => HISTORY_FILE
         };
 
         if !Path::new(file).exists() {

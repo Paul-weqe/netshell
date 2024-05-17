@@ -1,4 +1,5 @@
 
+pub mod permissions;
 pub(crate) mod icmp;
 pub(crate) mod history;
 use std::{ffi::CString, mem::zeroed, str as ex_str};
