@@ -7,10 +7,8 @@ mod config;
 mod cli;
 mod modes;
 
-
-use std::io::Error;
-
 use cli::{Cli, Mode};
+use base::history::History;
 
 
 pub const DEFAULT_HISTORY_LOCATION: &str = "/root/.netsh_history";
@@ -19,7 +17,7 @@ pub const DEFAULT_HISTORY_LOCATION: &str = "/root/.netsh_history";
 struct Context {
     mode: cli::Mode, 
     config: Configuration,
-    history: Vec<String>
+    history: History
 }
 
 #[derive(Clone)]
@@ -42,11 +40,11 @@ async fn main() {
         
         match context.clone().mode {
             Mode::Operation(ref op) => {
-                op.run(&mut context);
+                let _ = op.run(&mut context);
             },
 
             Mode::Configuration(ref conf) => {
-                conf.run(&mut context);
+                let _ = conf.run(&mut context);
             }
 
         }

@@ -17,7 +17,12 @@ pub(crate) fn execute(input: ConfInput, context: &mut Context) -> std::io::Resul
             // {username}# edit
             ConfCommand::Edit => {
                 return Ok(ClappedOutput::LevelDown)
-            },
+            }
+
+            ConfCommand::History => {
+                context.history.pretty_print();
+                return Ok(ClappedOutput::Completed)
+            }
 
 
             ConfCommand::Clear => {
@@ -77,6 +82,7 @@ pub(crate) struct ConfInput {
 enum ConfCommand {
     Clear,
     Up,
+    History,
     Exit,
     Edit,
     Show {

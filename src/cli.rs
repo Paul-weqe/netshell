@@ -5,7 +5,13 @@ use crossterm::{
     ExecutableCommand
 };
 use std::{io::{self, stdout, Write}, process};
-use crate::{base, commands::{configuration_cmd::{self, ConfInput}, operational_cmd::{self, OprInput}, ClappedOutput}, modes::{ConfigMode, OperationMode}, Context
+use crate::{
+    commands::{
+        configuration_cmd::{self, ConfInput}, 
+        operational_cmd::{self, OprInput}, 
+        ClappedOutput
+    }, 
+    modes::{ConfigMode, OperationMode}, Context
 };
 
 fn clear_screen() {
@@ -21,8 +27,9 @@ pub(crate) trait Cli {
     initial_cmd is used for when a user had wanted the command to be completed e.g when a user 
         has pressed '?' they expect to be given the options that come with that command 
     */
-    fn get_input(&self, prompt: &str, initial_cmd: Option<Vec<String>>) -> io::Result<UserRequest> {
+    fn get_input(&self, prompt: &str, initial_cmd: Option<Vec<String>>, context: &mut Context) -> io::Result<UserRequest> {
         let mut line = String::new();
+
         if let Some(cmd) = initial_cmd {
             line += &cmd.join(" ");
         }
@@ -37,6 +44,43 @@ pub(crate) trait Cli {
             let control = modifiers.contains(KeyModifiers::CONTROL);
             match code {
 
+                // keycode is used for getting the previous command that has been input. 
+                KeyCode::Up => {
+                    let mut space = String::new();
+                    if let Some(value) = context.history.up() {
+
+                        // when we press the up button, sometimes we find the previous is longer 
+                        // e.g if command 56 was `configure` and 57 was `show interfaces`
+                        // and you are scrolling up, naturally if we are pressing the up button, we will 
+                        // first be shown the 
+                        if line.len() > value.len() {
+                            (0..(line.len() - value.len())).for_each(|_| space = format!("{} ", space) );
+                        }
+
+                        line = value;
+                        print!("\r{prompt} {line}{}\r{prompt} {line}", space);
+                        std::io::stdout().flush().unwrap();
+                    }
+                }
+
+                // keycode used for getting the next command in the history that 
+                // have been input
+                KeyCode::Down => {
+                    let mut space = String::new();
+                    if let Some(value) = context.history.down() {
+                        // when we press the up button, sometimes we find the previous is longer 
+                        // e.g if command 56 was `configure` and 57 was `show interfaces`
+                        // and you are scrolling up, naturally if we are pressing the up button, we will 
+                        // first be shown the 
+                        if line.len() > value.len() {
+                            (0..(line.len() - value.len())).for_each(|_| space = format!("{} ", space) );
+                        }
+                        
+                        line = value;
+                        print!("\r{prompt} {line}{}\r{prompt} {line}", space);
+                        std::io::stdout().flush().unwrap();
+                    }
+                }
 
                 // when CTRL +C is pressed
                 KeyCode::Char('c') if control => {
@@ -69,6 +113,7 @@ pub(crate) trait Cli {
                     return Ok(UserRequest::Query(args))
                 }
                 KeyCode::Enter => {
+                    if !&line.trim().is_empty() { context.history.add(&line) };
                     break;
                 }
                 KeyCode::Backspace => {
@@ -115,14 +160,14 @@ pub(crate) trait Cli {
 impl Cli for OperationMode {
 
     fn run(&self, context: &mut Context) -> io::Result<()> {
-        if let Ok(user_request) = self.get_input(&self.prompt, None) {
+        if let Ok(user_request) = self.get_input(&self.prompt, None, context) {
             match user_request {
 
                 UserRequest::CompletedCommand(args) => {
 
                     if let Ok(cli) = Self::netcli_parse::<OprInput>(&args) {
 
-                        if let Ok(cmd_result) = operational_cmd::execute(cli){
+                        if let Ok(cmd_result) = operational_cmd::execute(cli, context){
                             match cmd_result {
                                 ClappedOutput::LevelUp => {
                                     context.mode = self.level_up();
@@ -175,7 +220,7 @@ impl Cli for OperationMode {
 impl Cli for ConfigMode {
     fn run(&self, context: &mut Context) -> io::Result<()> {
 
-        let input = self.get_input(&self.prompt, None);
+        let input = self.get_input(&self.prompt, None, context);
         let request = match input {
             Ok(user_request) => user_request,
             Err(_) => panic!("[config] No input")

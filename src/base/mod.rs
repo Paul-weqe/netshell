@@ -1,6 +1,6 @@
 
 pub(crate) mod icmp;
-mod history;
+pub(crate) mod history;
 use std::{ffi::CString, mem::zeroed, str as ex_str};
 
 use libc::{self, utsname};

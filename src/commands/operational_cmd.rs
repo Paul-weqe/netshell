@@ -1,11 +1,11 @@
 use std::io::Result;
 use clap::{Parser, Subcommand};
 use pnet::datalink::interfaces;
-use crate::{base::icmp, ifaces::draw_interface};
+use crate::{base::icmp, ifaces::draw_interface, Context};
 use super::ClappedOutput;
 
 /// executes the command that has been run when on the operation mode 
-pub(crate) fn execute(input: OprInput) -> Result<ClappedOutput> {
+pub(crate) fn execute(input: OprInput, context: &Context) -> Result<ClappedOutput> {
     
     if let Some(command) = input.command {
         match command {
@@ -13,6 +13,12 @@ pub(crate) fn execute(input: OprInput) -> Result<ClappedOutput> {
             OprCommand::Configure | OprCommand::Edit => {
                 println!("\nEntering configuration mode");
                 return Ok(ClappedOutput::LevelDown)
+            }
+
+
+            OprCommand::History => {
+                context.history.pretty_print();
+                return Ok(ClappedOutput::Completed)
             }
 
             OprCommand::Ping { host } => {
@@ -28,7 +34,8 @@ pub(crate) fn execute(input: OprInput) -> Result<ClappedOutput> {
 
             OprCommand::Clear => {
                 return Ok(ClappedOutput::ClearScreen)
-            }
+            },
+
         }
     }
 
@@ -51,6 +58,7 @@ enum OprCommand {
     Clear,
     Configure,
     Edit,
+    History,
     Ping {
         host: String
     },
