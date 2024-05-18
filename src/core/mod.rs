@@ -1,10 +1,10 @@
 
-pub mod permissions;
+pub mod auth;
 pub(crate) mod icmp;
 pub(crate) mod history;
 use std::{ffi::CString, mem::zeroed, str as ex_str};
 
-use libc::{self, utsname};
+use libc;
 
 /// meant to hold the utsname structure as specified in posix
 /// <https://pubs.opengroup.org/onlinepubs/7908799/xsh/sysutsname.h.html> 
@@ -17,8 +17,8 @@ pub struct NameStructure {
     pub domainname: [u8; 65] 
 }
 
-impl From<utsname> for NameStructure {
-    fn from(value: utsname) -> Self {
+impl From<libc::utsname> for NameStructure {
+    fn from(value: libc::utsname) -> Self {
         let mut sysname: [u8; 65] = [u8::default(); 65];
         value.sysname.iter().enumerate().for_each(|(i, val)|sysname[i] = *val as u8);
 
@@ -51,7 +51,7 @@ impl From<utsname> for NameStructure {
 
 impl NameStructure {
 
-    fn sysname(&self) -> String {
+    fn _sysname(&self) -> String {
         String::from(ex_str::from_utf8(&self.sysname).unwrap())
     }
 
@@ -59,25 +59,26 @@ impl NameStructure {
         String::from(ex_str::from_utf8(&self.nodename).unwrap())
     }
 
-    fn release(&self) -> String {
+    fn _release(&self) -> String {
         String::from(ex_str::from_utf8(&self.release).unwrap())
     }
 
-    fn version(&self) -> String {
+    fn _version(&self) -> String {
         String::from(ex_str::from_utf8(&self.version).unwrap())
     }
 
-    fn machine(&self) -> String {
+    fn _machine(&self) -> String {
         String::from(ex_str::from_utf8(&self.machine).unwrap())
     }
 
-    fn domainname(&self) -> String {
+    fn _domainname(&self) -> String {
         String::from(ex_str::from_utf8(&self.domainname).unwrap())
     }
+    
 }
 
 pub(crate) fn gethostname() -> String {
-    let mut result: utsname = unsafe { zeroed() };
+    let mut result: libc::utsname = unsafe { zeroed() };
     unsafe { libc::uname(&mut result) }; 
     NameStructure::from(result).nodename()
 }
@@ -93,4 +94,3 @@ pub(crate) fn sethostname(hostname: &str) -> i32 {
         libc::sethostname(CString::into_raw(hostname), size)
     }
 }
-

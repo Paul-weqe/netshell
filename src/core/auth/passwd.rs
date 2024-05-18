@@ -1,4 +1,4 @@
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 use libc;
 
 #[derive(Default)]
@@ -14,7 +14,7 @@ pub struct Passwd {
 
 impl Passwd {
 
-    pub fn create_user(username: &str, home_dir: &str, uid: u32) {
+    pub fn create_passwd(username: &str, home_dir: &str, uid: u32) {
         let mut n_passwd: Passwd = Passwd::default();
         n_passwd.pw_dir = home_dir.to_string();
         n_passwd.pw_gecos = username.to_string();
@@ -22,7 +22,7 @@ impl Passwd {
         n_passwd.pw_gid = uid;
         n_passwd.pw_uid = uid;
         n_passwd.pw_shell = "/bin/bash".to_string();
-        
+
         unsafe {
             let fname = CString::new("/etc/passwd")
                 .expect("unabel to convert '/etc/passwd' to cstring").into_raw();
@@ -41,13 +41,13 @@ impl From<libc::passwd> for Passwd {
     fn from(value: libc::passwd) -> Self {
         unsafe {
             Self {
-                pw_name: CString::from_raw(value.pw_name).into_string().expect(""),
-                pw_passwd: CString::from_raw(value.pw_passwd).into_string().expect(""),
+                pw_name: CStr::from_ptr(value.pw_name).to_str().expect("").to_string(),
+                pw_passwd: CStr::from_ptr(value.pw_passwd).to_str().expect("").to_string(),
                 pw_uid: value.pw_uid,
                 pw_gid: value.pw_gid,
-                pw_gecos: CString::from_raw(value.pw_gecos).into_string().expect(""),
-                pw_dir: CString::from_raw(value.pw_dir).into_string().expect(""),
-                pw_shell: CString::from_raw(value.pw_shell).into_string().expect("")
+                pw_gecos: CStr::from_ptr(value.pw_gecos).to_str().expect("").to_string(),
+                pw_dir: CStr::from_ptr(value.pw_dir).to_str().expect("").to_string(),
+                pw_shell: CStr::from_ptr(value.pw_shell).to_str().expect("").to_string()
             }
         }
     }
