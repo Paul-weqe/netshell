@@ -3,7 +3,7 @@ use std::ffi::CString;
 
 pub mod shadow;
 mod passwd;
-
+pub mod group;
 
 pub fn create_user(username: &str, password: &str) {
     passwd::Passwd::create_passwd(username, format!("/home/{username}").as_str(), 1738);
