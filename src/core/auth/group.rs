@@ -1,12 +1,18 @@
-use std::{ffi::{CStr, CString}, io, slice};
+use std::{ffi::{CStr, CString}, slice, mem};
 
 use libc;
 
-#[derive(Debug)]
+use crate::GROUP_FILE;
+
+#[derive(Debug, Clone)]
 pub struct Group {
     // The group ID of the group.
     id: u32,
 
+    // password for the group. Normally blank.
+    // Used mostly for privileged groups
+    password: String,
+    
     // The name of the group.
     name: String,
 
@@ -38,23 +44,77 @@ impl From<libc::group> for Group {
                 id: value.gr_gid,
                 name: CStr::from_ptr(value.gr_name)
                     .to_str().expect("unable to convert libc::group::gr_name to Group::name").to_string(),
+                password: CStr::from_ptr(value.gr_passwd)
+                    .to_str().expect("unable to convert libc::group::gr_passwd to Group::password").to_string(),
                 members
             }
         }
     }
 }
 
-pub fn get_group(uname: &str) -> io::Result<Group> {
-    let u = CString::new(uname)
-        .expect("unable to convert &str to *mut i8").into_raw();
-    let gr_ptr = unsafe {
-        libc::getgrnam(u)
-    };
+impl Into<libc::group> for Group {
+    fn into(self) -> libc::group {
+        // using 512 as the abitrary number, number of users 
+        let mut m: [*mut i8; 512] = [unsafe{mem::zeroed()}; 512];
+        
+        self.members.iter().enumerate().for_each(|(index, a)| {
+            m[index] = CString::new(a.as_str()).unwrap().into_raw();
+        });
 
-    if gr_ptr == std::ptr::null_mut() {
-        println!("-------------");
-        panic!("Unable to convert!")
+        libc::group {
+            gr_gid: self.id,
+            gr_name: CString::new(self.name.as_str()).unwrap().into_raw(),
+            gr_passwd: CString::new("").unwrap().into_raw(),
+            gr_mem: m.as_mut_ptr()
+        }
     }
-    Ok(Group::from(unsafe{ *gr_ptr }))
+}
+
+impl Group {
+
+    /// creates a group if it does not exist. 
+    /// the id will be generated
+    pub fn create_group(name: &str, id: u32) -> Option<Group> {
+
+        let group = Group {
+            id,
+            name: String::from(name),
+            password: String::from(""),
+            members: Vec::new()
+        };
+
+        // make sure the group does not exist
+        if let None = Self::get_by_name(name) {
+            unsafe {
+                let fname = CString::new(GROUP_FILE)
+                    .expect("unable to convert '/etc/group' to CString").into_raw();
+                let mode = CString::new("a")
+                    .expect("Unable to convert 'a' to CString").into_raw();
+                let f = libc::fopen(fname, mode);
+        
+                let g: libc::group = group.clone().into();
+        
+                libc::putgrent(&g, f);
+                libc::fclose(f);
+            }
+            return Some(group)
+        }
+        None
+    }
+
+
+    pub fn get_by_name(name: &str) -> Option<Group> {
+        let group_name = CString::new(name)
+            .expect("unable to convert &str to *mut i8").into_raw();
+        let gr_ptr = unsafe {
+            libc::getgrnam(group_name)
+        };
+
+        if gr_ptr == std::ptr::null_mut() {
+            return None
+        }
+        Some(Group::from(unsafe{ *gr_ptr }))
+    }
 
 }
+

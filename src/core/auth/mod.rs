@@ -1,9 +1,13 @@
 use std::ffi::CString;
 
 
-pub mod shadow;
+mod shadow;
 mod passwd;
-pub mod group;
+mod group;
+
+pub use group::Group;
+pub use shadow::Shadow;
+pub use passwd::Passwd;
 
 pub fn create_user(username: &str, password: &str) {
     passwd::Passwd::create_passwd(username, format!("/home/{username}").as_str(), 1738);

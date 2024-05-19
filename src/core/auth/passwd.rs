@@ -1,6 +1,8 @@
 use std::ffi::{CStr, CString};
 use libc;
 
+use crate::{PASSWD_FILE, REGULAR_USER_SHELL};
+
 #[derive(Default)]
 pub struct Passwd {
     pw_name: String,
@@ -21,11 +23,11 @@ impl Passwd {
         n_passwd.pw_name = username.to_string();
         n_passwd.pw_gid = uid;
         n_passwd.pw_uid = uid;
-        n_passwd.pw_shell = "/bin/bash".to_string();
+        n_passwd.pw_shell = REGULAR_USER_SHELL.to_string();
 
         unsafe {
-            let fname = CString::new("/etc/passwd")
-                .expect("unabel to convert '/etc/passwd' to cstring").into_raw();
+            let fname = CString::new(PASSWD_FILE)
+                .expect("unable to convert '/etc/passwd' to cstring").into_raw();
             let mode = CString::new("a")
                 .expect("unable to convert 'a' to cstring").into_raw();
 

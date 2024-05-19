@@ -1,18 +1,23 @@
 pub mod routing;
 pub mod cli;
-pub mod core;
+mod core;
 
 mod commands;
 mod ifaces;
 mod config;
 mod modes;
 
+pub use core::auth;
 use crate::core::history::History;
 
 pub const REGULAR_USER_SHELL: &str = "/bin/bash";
 pub const NETSHELL_HOME_DIR: &str = "/home/netshell";
-pub const NETSHELL_GROUP_NUMBER: u32 = 1500;
 pub const HISTORY_FILE: &str = "/root/.netsh_history";
+
+// auth files
+pub const PASSWD_FILE: &str = "/etc/passwd";
+pub const GROUP_FILE: &str = "/etc/group";
+pub const NETSHELL_GROUP_ID: u32 = 1738;
 
 
 #[derive(Default, Clone)]
