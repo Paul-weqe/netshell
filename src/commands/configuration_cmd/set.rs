@@ -20,7 +20,8 @@ pub(super) fn execute(item: SetItem, context: &mut Context) -> std::io::Result<C
                         return Ok(ClappedOutput::Completed);
                     }
                 }
-                _=> {
+                System::Login { username, password }=> {
+                    core::auth::create_user(username.as_str(), password.as_str());
                     Ok(ClappedOutput::Completed)
                 }
             }
@@ -47,6 +48,7 @@ enum System {
         hostname: String
     },
     Login {
-        
+        username: String,
+        password: String
     }
 }

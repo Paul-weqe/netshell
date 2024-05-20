@@ -10,7 +10,7 @@ mod modes;
 pub use core::auth;
 use crate::core::history::History;
 
-pub const REGULAR_USER_SHELL: &str = "/bin/bash";
+pub const REGULAR_USER_SHELL: &str = "/bin/netshell";
 pub const NETSHELL_HOME_DIR: &str = "/home/netshell";
 pub const HISTORY_FILE: &str = "/root/.netsh_history";
 

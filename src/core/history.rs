@@ -1,8 +1,7 @@
 
-use std::{fs::{self, File}, io::Write, path::Path};
+use std::{fs::{self, File}, env, io::Write, path::Path};
 use tabled::{builder::Builder, settings::{object::Rows, Alignment, Style}};
 use crate::HISTORY_FILE;
-
 
 #[derive(Clone)]
 pub(crate) struct History {
@@ -20,15 +19,22 @@ impl History {
         let mut commands = Vec::new();
 
         let file = match location {
-            Some(loc) => loc,
-            None => HISTORY_FILE
+            Some(loc) => loc.to_string(),
+            None => {
+                let home = match env::var("HOME") {
+                    Ok(h) => format!("{h}/.netsh_history"),
+                    Err(_) => HISTORY_FILE.to_string()
+                };
+                home
+            }
         };
 
-        if !Path::new(file).exists() {
-            let _ = File::create(file);
+
+        if !Path::new(&file).exists() {
+            let _ = File::create(&file);
         }
 
-        fs::read_to_string(file)
+        fs::read_to_string(&file)
             .expect("unable to open file")
             .split("\n")
             .into_iter()
