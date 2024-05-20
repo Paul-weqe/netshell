@@ -16,13 +16,15 @@ pub struct Passwd {
 
 impl Passwd {
 
-    pub fn create_passwd(username: &str, home_dir: &str, uid: u32) {
+    pub fn create_passwd(username: &str, home_dir: &str, uid: u32, gid: u32) {
         let mut n_passwd: Passwd = Passwd::default();
-        n_passwd.pw_dir = home_dir.to_string();
-        n_passwd.pw_gecos = username.to_string();
+
         n_passwd.pw_name = username.to_string();
-        n_passwd.pw_gid = uid;
+        n_passwd.pw_passwd = String::from("x");
         n_passwd.pw_uid = uid;
+        n_passwd.pw_gid = gid;
+        n_passwd.pw_gecos = username.to_string();
+        n_passwd.pw_dir = home_dir.to_string();
         n_passwd.pw_shell = REGULAR_USER_SHELL.to_string();
 
         unsafe {

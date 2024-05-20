@@ -1,6 +1,6 @@
 
-use std::{ffi::{CStr, CString}, time::{SystemTime, UNIX_EPOCH}};
-use md5;
+use std::{ffi::{CStr, CString}, fs::OpenOptions, io::Write, time::{SystemTime, UNIX_EPOCH}};
+use pwhash::sha512_crypt;
 
 #[derive(Debug)]
 /// Field descriptions from: https://linuxize.com/post/etc-shadow-file/
@@ -87,4 +87,37 @@ impl Into<libc::spwd> for Shadow {
             sp_flag: self.unused
         }
     }
+}
+
+
+impl Shadow {
+
+    pub(super) fn create(uname: &str, password: &str) {
+        let mut shadow_str = format!("{uname}:");
+
+
+        let hash = sha512_crypt::hash(password).unwrap();
+        shadow_str += format!("{hash}:").as_str();
+        shadow_str += format!("{}:", Self::epoch_time()).as_str();
+        shadow_str += "0:";
+        shadow_str += "99999:";
+        shadow_str += "7:::\n";
+
+        let mut file = OpenOptions::new()
+            .append(true)
+            .open("/etc/shadow")
+            .unwrap();
+        file.write(shadow_str.as_bytes())
+            .unwrap();
+    }
+    
+    fn epoch_time() -> u64 {
+        let start = SystemTime::now();
+        let since_the_epoch = start
+            .duration_since(UNIX_EPOCH)
+            .expect("Time went backward I guess");
+        since_the_epoch.as_secs() / 86400
+    }
+
+
 }
